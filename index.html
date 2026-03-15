@@ -1,715 +1,357 @@
-﻿<!doctype html>
-<html lang="en">
+<!doctype html>
+<html lang="ru">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Bible Mini App</title>
+  <title>Bible App</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
-      --bg: #f9f9f9;
-      --text: #1a1a1a;
-      --surface: #ffffff;
-      --muted: rgba(26, 26, 26, 0.6);
-      --border: rgba(26, 26, 26, 0.16);
-      --accent: #2f6ee5;
-      --header-bg: #f9f9f9;
-      --shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+      --bg: #ffffff; --text: #1d1d1f; --surface: #f5f5f7;
+      --muted: #86868b; --border: rgba(0, 0, 0, 0.08);
+      --accent: #007aff; --nav-bg: rgba(255, 255, 255, 0.85);
+      --shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+      --font-size: 19px;
     }
-
-    :root[data-theme="light"] {
-      --bg: #f9f9f9;
-      --text: #1a1a1a;
-      --surface: #ffffff;
-      --muted: rgba(26, 26, 26, 0.6);
-      --border: rgba(26, 26, 26, 0.16);
-      --accent: #2f6ee5;
-      --header-bg: #f9f9f9;
-      --shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-    }
-
     :root[data-theme="sepia"] {
-      --bg: #f4ecd8;
-      --text: #433422;
-      --surface: #f8f0de;
-      --muted: rgba(67, 52, 34, 0.6);
-      --border: rgba(67, 52, 34, 0.2);
-      --accent: #8a5c2b;
-      --header-bg: #f4ecd8;
-      --shadow: 0 6px 18px rgba(67, 52, 34, 0.12);
+      --bg: #fbf0d9; --text: #433422; --surface: #f0e3c8;
+      --muted: #8a7b66; --border: rgba(67, 52, 34, 0.15);
+      --accent: #d97706; --nav-bg: rgba(251, 240, 217, 0.85);
     }
-
     :root[data-theme="dark"] {
-      --bg: #121212;
-      --text: #d1d1d1;
-      --surface: #1a1a1a;
-      --muted: rgba(209, 209, 209, 0.6);
-      --border: rgba(209, 209, 209, 0.18);
-      --accent: #8fb3ff;
-      --header-bg: #121212;
-      --shadow: 0 6px 18px rgba(0, 0, 0, 0.32);
+      --bg: #1c1c1e; --text: #f5f5f7; --surface: #2c2c2e;
+      --muted: #8e8e93; --border: rgba(255, 255, 255, 0.1);
+      --accent: #0a84ff; --nav-bg: rgba(28, 28, 30, 0.85);
     }
-
     :root[data-theme="night"] {
-      --bg: #000000;
-      --text: #a0a0a0;
-      --surface: #0b0b0b;
-      --muted: rgba(160, 160, 160, 0.62);
-      --border: rgba(160, 160, 160, 0.2);
-      --accent: #86a4ff;
-      --header-bg: #000000;
-      --shadow: 0 6px 18px rgba(0, 0, 0, 0.36);
+      --bg: #000000; --text: #e5e5ea; --surface: #1c1c1e;
+      --muted: #666666; --border: rgba(255, 255, 255, 0.2);
+      --accent: #5e5ce6; --nav-bg: rgba(0, 0, 0, 0.85);
     }
 
-    * {
-      box-sizing: border-box;
-    }
-
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      font-family: system-ui, -apple-system, sans-serif;
-      transition: background-color 160ms ease, color 160ms ease;
-      min-height: 100vh;
-      -webkit-font-smoothing: antialiased;
-      text-rendering: optimizeLegibility;
+      margin: 0; padding: 0; min-height: 100vh;
+      background: var(--bg); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      touch-action: pan-y; transition: background 0.3s, color 0.3s;
     }
-
-    .app {
-      min-height: 100vh;
-      background: var(--bg);
-    }
-
+    
     .header {
-      position: sticky;
-      top: 0;
-      z-index: 20;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      height: 58px;
-      padding: max(8px, env(safe-area-inset-top)) 14px 8px;
-      border-bottom: 1px solid var(--border);
-      background: color-mix(in srgb, var(--header-bg) 92%, transparent);
-      backdrop-filter: blur(10px);
+      position: sticky; top: 0; z-index: 30; display: flex; align-items: center; justify-content: space-between;
+      padding: max(12px, env(safe-area-inset-top)) 16px 12px;
+      border-bottom: 1px solid var(--border); background: var(--nav-bg); backdrop-filter: blur(12px);
     }
+    .header-title { border: none; background: transparent; color: var(--text); font-size: 17px; font-weight: 600; cursor: pointer; }
+    .icon-btn { width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; font-weight: 600; }
 
-    .header-title {
-      border: none;
-      background: transparent;
-      color: var(--text);
-      font: 600 16px/1.2 system-ui, -apple-system, sans-serif;
-      padding: 6px 8px;
-      border-radius: 10px;
-      cursor: pointer;
-      max-width: calc(100% - 80px);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
+    .reader-wrap { display: flex; justify-content: center; padding: 20px 24px 120px; }
+    .reader { width: 100%; max-width: 640px; font-family: Georgia, serif; font-size: var(--font-size); line-height: 1.65; transition: opacity 0.3s; }
+    .chapter-heading { font-family: sans-serif; font-size: 14px; color: var(--muted); text-transform: uppercase; font-weight: bold; margin-bottom: 24px; }
+    .verse { display: inline; cursor: pointer; border-radius: 6px; padding: 2px; }
+    .verse-num { font-size: 0.6em; color: var(--accent); font-weight: bold; vertical-align: super; margin-right: 6px; user-select: none; }
 
-    .header-title:active,
-    .icon-btn:active,
-    .chip:active,
-    .chapter-btn:active,
-    .list-item:active {
-      transform: scale(0.98);
+    .bottom-nav {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 25; border-top: 1px solid var(--border);
+      background: var(--nav-bg); backdrop-filter: blur(12px); padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
     }
+    .nav-btn { border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 12px; padding: 12px 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
 
-    .icon-btn {
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: var(--surface);
-      color: var(--text);
-      cursor: pointer;
-      font: 700 15px/1 system-ui, -apple-system, sans-serif;
-      box-shadow: var(--shadow);
-    }
+    .overlay { position: fixed; inset: 0; z-index: 40; display: none; flex-direction: column; background: var(--bg); }
+    .overlay.open { display: flex; }
+    .overlay-header { display: flex; justify-content: space-between; padding: max(12px, env(safe-area-inset-top)) 16px 12px; border-bottom: 1px solid var(--border); }
+    .overlay-title { margin: 0; font-size: 18px; font-weight: 700; }
+    .overlay-body { display: grid; grid-template-columns: 1fr 1fr; flex: 1; overflow: hidden; }
+    
+    .book-list { border-right: 1px solid var(--border); overflow-y: auto; padding: 8px; }
+    .list-item { width: 100%; border: none; background: transparent; color: var(--text); text-align: left; padding: 14px; border-radius: 10px; font-size: 15px; cursor: pointer; }
+    .list-item.active { background: var(--accent); color: #fff; font-weight: 600; }
+    
+    .chapter-grid { overflow-y: auto; padding: 16px; display: grid; gap: 10px; grid-template-columns: repeat(4, 1fr); align-content: start; }
+    .chapter-btn { border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 12px; padding: 14px 0; font-size: 16px; font-weight: 600; cursor: pointer; }
+    .chapter-btn.current { border-color: var(--accent); color: var(--accent); }
 
-    .reader-wrap {
-      display: flex;
-      justify-content: center;
-      padding: 14px 25px 34px;
-    }
+    .lang-row { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; gap: 10px; overflow-x: auto; }
+    .chip { border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 20px; padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
-    .reader {
-      width: 100%;
-      max-width: 600px;
-      font-family: Georgia, "Times New Roman", serif;
-      font-size: 19px;
-      line-height: 1.7;
-      letter-spacing: 0.01em;
+    .sheet-backdrop { position: fixed; inset: 0; z-index: 50; background: rgba(0,0,0,0.4); opacity: 0; pointer-events: none; transition: 0.3s; }
+    .sheet-backdrop.open { opacity: 1; pointer-events: auto; }
+    .bottom-sheet {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 51; background: var(--surface);
+      border-radius: 24px 24px 0 0; padding: 16px 20px calc(20px + env(safe-area-inset-bottom));
+      transform: translateY(105%); transition: 0.3s; max-height: 85vh; overflow-y: auto;
     }
+    .bottom-sheet.open { transform: translateY(0); }
+    .sheet-handle { width: 40px; height: 5px; border-radius: 3px; background: var(--muted); margin: 0 auto 16px; opacity: 0.5; }
+    .sheet-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 16px 0; }
+    .sheet-textarea { width: 100%; min-height: 100px; border: 1px solid var(--border); border-radius: 12px; padding: 12px; background: var(--bg); color: var(--text); font-size: 15px; margin-bottom: 12px; }
+    
+    .toast { position: fixed; top: 20px; left: 50%; transform: translate(-50%, -20px); background: var(--text); color: var(--bg); padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: bold; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 100; }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+    
+    .font-controls { display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 16px; }
+    .font-btn { flex: 1; border: 1px solid var(--border); background: var(--bg); color: var(--text); border-radius: 10px; padding: 10px; font-weight: bold; font-size: 16px; cursor: pointer; }
 
-    .chapter-heading {
-      font-family: system-ui, -apple-system, sans-serif;
-      font-size: 14px;
-      color: var(--muted);
-      margin: 2px 0 16px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
-
-    .verse {
-      display: inline;
-      margin: 0;
-      white-space: normal;
-      word-break: break-word;
-    }
-
-    .verse-num {
-      vertical-align: super;
-      font-size: 0.62em;
-      color: var(--muted);
-      margin-right: 4px;
-      user-select: none;
-    }
-
-    .status,
-    .empty {
-      font-family: system-ui, -apple-system, sans-serif;
-      color: var(--muted);
-      font-size: 14px;
-      padding: 20px 0;
-    }
-
-    .overlay {
-      position: fixed;
-      inset: 0;
-      background: var(--bg);
-      z-index: 40;
-      display: none;
-      flex-direction: column;
-    }
-
-    .overlay.open {
-      display: flex;
-    }
-
-    .overlay-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      padding: max(10px, env(safe-area-inset-top)) 16px 10px;
-      border-bottom: 1px solid var(--border);
-      min-height: 58px;
-    }
-
-    .overlay-title {
-      margin: 0;
-      font: 600 16px/1.2 system-ui, -apple-system, sans-serif;
-    }
-
-    .overlay-body {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      min-height: 0;
-      flex: 1;
-    }
-
-    .book-list {
-      border-right: 1px solid var(--border);
-      overflow: auto;
-      padding: 6px;
-    }
-
-    .list-item {
-      width: 100%;
-      text-align: left;
-      border: none;
-      background: transparent;
-      color: var(--text);
-      border-radius: 10px;
-      padding: 11px 12px;
-      margin-bottom: 4px;
-      font: 500 15px/1.2 system-ui, -apple-system, sans-serif;
-      cursor: pointer;
-    }
-
-    .list-item.active {
-      background: var(--surface);
-      box-shadow: var(--shadow);
-    }
-
-    .chapter-grid-wrap {
-      display: flex;
-      flex-direction: column;
-      min-height: 0;
-    }
-
-    .lang-row {
-      padding: 10px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      font-family: system-ui, -apple-system, sans-serif;
-    }
-
-    .chip {
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--text);
-      border-radius: 999px;
-      padding: 6px 10px;
-      font: 600 12px/1.2 system-ui, -apple-system, sans-serif;
-      cursor: pointer;
-    }
-
-    .chip.active {
-      border-color: var(--accent);
-      color: var(--accent);
-      background: color-mix(in srgb, var(--accent) 12%, transparent);
-    }
-
-    .chapter-grid {
-      overflow: auto;
-      padding: 10px;
-      display: grid;
-      gap: 8px;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      align-content: start;
-    }
-
-    .chapter-btn {
-      border: 1px solid var(--border);
-      background: var(--surface);
-      color: var(--text);
-      border-radius: 10px;
-      padding: 10px 0;
-      font: 600 14px/1 system-ui, -apple-system, sans-serif;
-      cursor: pointer;
-    }
-
-    .chapter-btn.current {
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-
-    .theme-menu {
-      position: fixed;
-      right: 14px;
-      top: 64px;
-      z-index: 45;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow);
-      border-radius: 12px;
-      width: 200px;
-      padding: 8px;
-      display: none;
-    }
-
-    .theme-menu.open {
-      display: block;
-    }
-
-    .theme-btn {
-      width: 100%;
-      text-align: left;
-      border: none;
-      border-radius: 8px;
-      padding: 10px;
-      margin: 2px 0;
-      background: transparent;
-      color: var(--text);
-      cursor: pointer;
-      font: 500 14px/1.2 system-ui, -apple-system, sans-serif;
-    }
-
-    .theme-btn.active {
-      color: var(--accent);
-      background: color-mix(in srgb, var(--accent) 12%, transparent);
-    }
-
-    @media (max-width: 760px) {
-      .overlay-body {
-        grid-template-columns: 45% 55%;
-      }
-      .chapter-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-      }
-    }
-
-    @media (max-width: 540px) {
-      .reader-wrap {
-        padding: 12px 25px 26px;
-      }
-      .overlay-body {
-        grid-template-columns: 1fr;
-      }
-      .book-list {
-        border-right: none;
-        border-bottom: 1px solid var(--border);
-        max-height: 42vh;
-      }
-      .chapter-grid {
-        grid-template-columns: repeat(5, minmax(0, 1fr));
-      }
-    }
+    @media (max-width: 600px) { .overlay-body { grid-template-columns: 35% 65%; } }
   </style>
 </head>
 <body>
-  <div class="app" id="app">
+  <div class="toast" id="toast">Скопировано!</div>
+
+  <div class="app">
     <header class="header">
-      <button class="header-title" id="open-selector" type="button">Loading...</button>
-      <button class="icon-btn" id="open-theme" type="button" aria-label="Themes">A</button>
+      <button class="header-title" id="open-selector">Загрузка...</button>
+      <button class="icon-btn" id="open-theme">Aa</button>
     </header>
 
-    <div class="theme-menu" id="theme-menu" role="menu" aria-label="Theme menu"></div>
-
     <main class="reader-wrap">
-      <article class="reader" id="reader">
-        <div class="status">Loading chapter...</div>
-      </article>
+      <article class="reader" id="reader"><div style="text-align:center; padding: 40px; color: var(--muted);">Инициализация...</div></article>
     </main>
+
+    <nav class="bottom-nav">
+      <button class="nav-btn" id="prev-btn">◀ Назад</button>
+      <button class="nav-btn" id="prayers-btn">Молитвы</button>
+      <button class="nav-btn" id="notes-btn">Заметки</button>
+      <button class="nav-btn" id="next-btn">Вперед ▶</button>
+    </nav>
   </div>
 
-  <section class="overlay" id="selector-overlay" aria-hidden="true">
+  <section class="overlay" id="selector-overlay">
     <div class="overlay-header">
-      <h2 class="overlay-title">Select Book & Chapter</h2>
-      <button class="icon-btn" id="close-selector" type="button" aria-label="Close selector">x</button>
+      <h2 class="overlay-title" id="selector-title">Оглавление</h2>
+      <button class="icon-btn" id="close-selector">✕</button>
     </div>
+    <div class="lang-row" id="lang-row"></div>
     <div class="overlay-body">
       <div class="book-list" id="book-list"></div>
-      <div class="chapter-grid-wrap">
-        <div class="lang-row" id="lang-row"></div>
-        <div class="chapter-grid" id="chapter-grid"></div>
-      </div>
+      <div class="chapter-grid" id="chapter-grid"></div>
     </div>
   </section>
 
+  <div class="sheet-backdrop" id="sheet-backdrop"></div>
+
+  <section class="bottom-sheet" id="verse-sheet">
+    <div class="sheet-handle"></div>
+    <h3 style="margin:0 0 4px; font-size:18px;" id="verse-sheet-title">Стих</h3>
+    <p style="margin:0 0 16px; color:var(--muted); font-size:13px;" id="verse-sheet-subtitle"></p>
+    <p style="margin:0; font-family:Georgia, serif; font-size:18px; line-height:1.5;" id="verse-sheet-text"></p>
+    
+    <div class="sheet-actions">
+      <button class="nav-btn" style="border:none; background:var(--bg);" id="copy-btn">📋 <span id="txt-copy">Копия</span></button>
+      <button class="nav-btn" style="border:none; background:var(--bg); color:var(--accent);" id="explain-btn">💡 <span id="txt-explain">Смысл</span></button>
+      <button class="nav-btn" style="border:none; background:var(--bg); color:var(--accent);" id="pray-btn">🙏 <span id="txt-pray">Молитва</span></button>
+    </div>
+    
+    <textarea class="sheet-textarea" id="note-input" placeholder="Заметка..."></textarea>
+    <div style="display:flex; gap:10px;">
+      <button class="nav-btn" style="flex:1;" id="close-verse-btn">Отмена</button>
+      <button class="nav-btn" style="flex:1; background:var(--accent); color:#fff; border:none;" id="save-note-btn">Сохранить</button>
+    </div>
+  </section>
+
+  <section class="bottom-sheet" id="notes-sheet">
+    <div class="sheet-handle"></div>
+    <h3 style="margin:0 0 16px;" id="notes-sheet-title">Заметки</h3>
+    <div id="notes-list" style="display:flex; flex-direction:column; gap:12px; margin-bottom:16px;"></div>
+    <button class="nav-btn" style="width:100%;" id="close-notes-btn">Закрыть</button>
+  </section>
+
+  <section class="bottom-sheet" id="theme-sheet">
+    <div class="sheet-handle"></div>
+    <h3 style="margin:0 0 16px;" id="theme-title">Настройки</h3>
+    <div class="font-controls">
+      <button class="font-btn" onclick="changeFontSize(-2)">А-</button>
+      <button class="font-btn" onclick="changeFontSize(2)">А+</button>
+    </div>
+    <div id="theme-options" style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;"></div>
+    <button class="nav-btn" style="width:100%;" id="close-theme-btn">Закрыть</button>
+  </section>
+
   <script>
-    const STORAGE_KEYS = {
-      theme: "bible.theme",
-      lang: "bible.lang",
-      lastRef: "bible.lastRef"
+    const THEMES = { light: "Светлая", sepia: "Бумага", dark: "Темная", night: "Ночь" };
+    const LANGUAGES = { ru: { label: "RU", file: "data/ru_synodal.json" }, en: { label: "EN", file: "data/en_akjv.json" }, uk: { label: "UK", file: "data/uk_ogienko.json" }, es: { label: "ES", file: "data/es_rv.json" } };
+    
+    const STRINGS = {
+      ru: { select: "Выбор книги", prayers: "Молитвы", notes: "Заметки", copy: "Копия", copied: "Скопировано!", explain: "Смысл", pray: "Молитва", save: "Сохранить", cancel: "Отмена", close: "Закрыть", theme: "Настройки", noNotes: "Нет заметок", del: "Удалить", prev: "◀ Назад", next: "Вперед ▶" },
+      en: { select: "Select Book", prayers: "Prayers", notes: "Notes", copy: "Copy", copied: "Copied!", explain: "Explain", pray: "Pray", save: "Save", cancel: "Cancel", close: "Close", theme: "Settings", noNotes: "No notes", del: "Delete", prev: "◀ Prev", next: "Next ▶" },
+      uk: { select: "Вибір книги", prayers: "Молитви", notes: "Нотатки", copy: "Копія", copied: "Скопійовано!", explain: "Сенс", pray: "Молитва", save: "Зберегти", cancel: "Скасувати", close: "Закрити", theme: "Налаштування", noNotes: "Немає нотаток", del: "Видалити", prev: "◀ Назад", next: "Вперед ▶" },
+      es: { select: "Seleccionar", prayers: "Oraciones", notes: "Notas", copy: "Copiar", copied: "¡Copiado!", explain: "Explicar", pray: "Orar", save: "Guardar", cancel: "Cancelar", close: "Cerrar", theme: "Ajustes", noNotes: "Sin notas", del: "Borrar", prev: "◀ Ant", next: "Sig ▶" }
     };
-
-    const THEMES = {
-      light: { name: "Light (Soft)", color: "#f9f9f9" },
-      sepia: { name: "Sepia (Paper)", color: "#f4ecd8" },
-      dark: { name: "Dark (Charcoal)", color: "#121212" },
-      night: { name: "Night (Deep)", color: "#000000" }
-    };
-
-    const LANGUAGES = {
-      ru: { label: "RU", file: "data/ru_synodal.json" },
-      en: { label: "EN", file: "data/en_akjv.json" },
-      uk: { label: "UK", file: "data/uk_ogienko.json" },
-      es: { label: "ES", file: "data/es_rv.json" }
-    };
-
-    const cache = new Map();
 
     const state = {
-      theme: localStorage.getItem(STORAGE_KEYS.theme) || "sepia",
-      lang: localStorage.getItem(STORAGE_KEYS.lang) || "en",
-      bookIndex: 0,
-      chapterNumber: 1,
-      currentBible: null,
-      currentBookIndexInSelector: 0
+      theme: localStorage.getItem("bible.theme") || "sepia",
+      lang: localStorage.getItem("bible.lang") || "ru",
+      fontSize: parseInt(localStorage.getItem("bible.fontSize")) || 19,
+      bookIndex: 0, chapterNumber: 1, currentBible: null, selectorBookIndex: 0, selectedVerse: null
     };
 
-    const els = {
-      root: document.documentElement,
-      reader: document.getElementById("reader"),
-      headerTitle: document.getElementById("open-selector"),
-      selector: document.getElementById("selector-overlay"),
-      openSelector: document.getElementById("open-selector"),
-      closeSelector: document.getElementById("close-selector"),
-      bookList: document.getElementById("book-list"),
-      chapterGrid: document.getElementById("chapter-grid"),
-      openTheme: document.getElementById("open-theme"),
-      themeMenu: document.getElementById("theme-menu"),
-      langRow: document.getElementById("lang-row")
-    };
+    const tg = window.Telegram?.WebApp;
+    const cache = new Map();
 
-    const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+    function t(key) { return (STRINGS[state.lang] || STRINGS.en)[key] || key; }
 
-    function parseLastRef() {
+    function updateLabels() {
+      document.getElementById("selector-title").textContent = t("select");
+      document.getElementById("prev-btn").textContent = t("prev");
+      document.getElementById("next-btn").textContent = t("next");
+      document.getElementById("prayers-btn").textContent = t("prayers");
+      document.getElementById("notes-btn").textContent = t("notes");
+      document.getElementById("txt-copy").textContent = t("copy");
+      document.getElementById("txt-explain").textContent = t("explain");
+      document.getElementById("txt-pray").textContent = t("pray");
+      document.getElementById("save-note-btn").textContent = t("save");
+      document.getElementById("close-verse-btn").textContent = t("cancel");
+      document.getElementById("notes-sheet-title").textContent = t("notes");
+      document.getElementById("close-notes-btn").textContent = t("close");
+      document.getElementById("theme-title").textContent = t("theme");
+      document.getElementById("close-theme-btn").textContent = t("close");
+    }
+
+    function changeFontSize(delta) {
+      state.fontSize = Math.max(14, Math.min(28, state.fontSize + delta));
+      localStorage.setItem("bible.fontSize", state.fontSize);
+      document.documentElement.style.setProperty('--font-size', `${state.fontSize}px`);
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById("toast"); toast.textContent = msg; toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 2000);
+    }
+
+    function applyTheme(t) {
+      state.theme = t; localStorage.setItem("bible.theme", t); document.documentElement.dataset.theme = t;
+      document.getElementById("theme-options").innerHTML = Object.entries(THEMES).map(([k, name]) => 
+        `<button class="list-item ${k===state.theme?'active':''}" style="border:1px solid var(--border);" onclick="applyTheme('${k}')">${name}</button>`
+      ).join("");
+      if (tg) { const c = { light: "#ffffff", sepia: "#fbf0d9", dark: "#1c1c1e", night: "#000000" }; try { tg.setHeaderColor(c[t]); tg.setBackgroundColor(c[t]); } catch(e){} }
+    }
+
+    async function setLanguage(newLang) {
+      state.lang = newLang; localStorage.setItem("bible.lang", newLang);
+      updateLabels();
+      
+      document.getElementById("lang-row").innerHTML = Object.entries(LANGUAGES).map(([k, v]) => 
+        `<button class="chip ${k === state.lang ? "active" : ""}" onclick="setLanguage('${k}')">${v.label}</button>`
+      ).join("");
+
+      document.getElementById("reader").style.opacity = 0;
+      
       try {
-        const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.lastRef) || "{}");
-        if (typeof saved.bookIndex === "number" && typeof saved.chapterNumber === "number") {
-          state.bookIndex = Math.max(0, saved.bookIndex);
-          state.chapterNumber = Math.max(1, saved.chapterNumber);
-          state.currentBookIndexInSelector = state.bookIndex;
+        if (!cache.has(newLang)) {
+          const res = await fetch(LANGUAGES[newLang].file);
+          if (!res.ok) throw new Error("Файл не найден");
+          cache.set(newLang, await res.json());
         }
-      } catch (_) {
+        state.currentBible = cache.get(newLang);
+        
+        state.bookIndex = Math.min(state.bookIndex, state.currentBible.books.length - 1);
+        state.chapterNumber = Math.min(state.chapterNumber, state.currentBible.books[state.bookIndex].chapters.length);
+        state.selectorBookIndex = state.bookIndex;
+
+        renderReader();
+        if(document.getElementById("selector-overlay").classList.contains("open")) renderSelector();
+        
+        setTimeout(() => document.getElementById("reader").style.opacity = 1, 150);
+      } catch (e) {
+        document.getElementById("reader").style.opacity = 1;
+        document.getElementById("reader").innerHTML = `<div style="text-align:center; padding: 40px; color: red;"><b>Ошибка загрузки!</b><br><small>Вы открыли файл локально. Используйте локальный сервер (PyCharm) или залейте файлы на GitHub Pages.</small></div>`;
+        document.getElementById("open-selector").textContent = "Ошибка";
       }
     }
 
-    function saveLastRef() {
-      localStorage.setItem(STORAGE_KEYS.lastRef, JSON.stringify({
-        bookIndex: state.bookIndex,
-        chapterNumber: state.chapterNumber
-      }));
-    }
-
-    function applyTheme(theme) {
-      const selected = THEMES[theme] ? theme : "sepia";
-      state.theme = selected;
-      localStorage.setItem(STORAGE_KEYS.theme, selected);
-      els.root.dataset.theme = selected;
-      syncTelegramHeaderColor();
-      renderThemeMenu();
-    }
-
-    function syncTelegramHeaderColor() {
-      if (!tg) {
-        return;
-      }
-      const color = THEMES[state.theme].color;
-      try {
-        tg.setHeaderColor(color);
-      } catch (_) {
-        try {
-          tg.setBackgroundColor(color);
-        } catch (_) {
-        }
-      }
-    }
-
-    function closeThemeMenu() {
-      els.themeMenu.classList.remove("open");
-    }
-
-    function toggleThemeMenu() {
-      els.themeMenu.classList.toggle("open");
-    }
-
-    function openSelector() {
-      els.selector.classList.add("open");
-      els.selector.setAttribute("aria-hidden", "false");
-      renderSelector();
-    }
-
-    function closeSelector() {
-      els.selector.classList.remove("open");
-      els.selector.setAttribute("aria-hidden", "true");
-    }
-
-    function setLanguage(lang) {
-      if (!LANGUAGES[lang] || state.lang === lang) {
-        return;
-      }
-      state.lang = lang;
-      localStorage.setItem(STORAGE_KEYS.lang, lang);
-      loadCurrentChapter();
-    }
-
-    async function loadBible(lang, book, chapter) {
-      const key = lang;
-      const file = LANGUAGES[lang] && LANGUAGES[lang].file;
-      if (!file) {
-        throw new Error("Unsupported language: " + lang);
-      }
-      if (!cache.has(key)) {
-        const response = await fetch(file, { cache: "force-cache" });
-        if (!response.ok) {
-          throw new Error("Failed to load: " + file);
-        }
-        cache.set(key, await response.json());
-      }
-      const bible = cache.get(key);
-      const safeBook = Math.max(0, Math.min(book, bible.books.length - 1));
-      const selectedBook = bible.books[safeBook];
-      const safeChapter = Math.max(1, Math.min(chapter, selectedBook.chapters.length));
-      const chapterObj = selectedBook.chapters[safeChapter - 1];
-      return {
-        bible,
-        bookIndex: safeBook,
-        chapterNumber: safeChapter,
-        book: selectedBook,
-        chapter: chapterObj
-      };
-    }
-
-    function renderReader(loaded) {
-      const { book, chapter, chapterNumber } = loaded;
-      const heading = `<div class=\"chapter-heading\">${escapeHtml(book.name)} ${chapterNumber}</div>`;
-      const body = chapter.verses
-        .map((v) => {
-          const verseNum = Number(v.verse) || "";
-          const verseText = cleanVerseText(v.text);
-          return `<span class=\"verse\"><sup class=\"verse-num\">${verseNum}</sup>${escapeHtml(verseText)} </span>`;
-        })
-        .join("");
-      els.reader.innerHTML = heading + (body || '<div class="empty">No verses found.</div>');
-      els.headerTitle.textContent = `${book.name} ${chapterNumber}`;
+    function renderReader() {
+      const book = state.currentBible.books[state.bookIndex];
+      document.getElementById("open-selector").textContent = `${book.name} ${state.chapterNumber} ▾`;
+      let html = `<div class="chapter-heading">${book.name} ${state.chapterNumber}</div>`;
+      html += book.chapters[state.chapterNumber - 1].verses.map(v => `<span class="verse" onclick="openVerse(${v.verse}, '${v.text.replace(/'/g, "\\'")}')"><sup class="verse-num">${v.verse}</sup>${v.text} </span>`).join("");
+      document.getElementById("reader").innerHTML = html;
+      localStorage.setItem("bible.last", JSON.stringify({ b: state.bookIndex, c: state.chapterNumber }));
     }
 
     function renderSelector() {
-      const bible = state.currentBible;
-      if (!bible) {
-        els.bookList.innerHTML = "<div class='status'>Loading books...</div>";
-        els.chapterGrid.innerHTML = "";
-        renderLanguageRow();
-        return;
-      }
+      const books = state.currentBible.books;
+      document.getElementById("book-list").innerHTML = books.map((b, i) => 
+        `<button class="list-item ${i === state.selectorBookIndex ? "active" : ""}" onclick="state.selectorBookIndex=${i}; renderSelector();">${b.name}</button>`
+      ).join("");
 
-      const maxIndex = bible.books.length - 1;
-      state.currentBookIndexInSelector = Math.min(Math.max(state.currentBookIndexInSelector, 0), maxIndex);
-
-      els.bookList.innerHTML = bible.books
-        .map((book, index) => {
-          const cls = index === state.currentBookIndexInSelector ? "list-item active" : "list-item";
-          return `<button class="${cls}" data-book-index="${index}" type="button">${escapeHtml(book.name)}</button>`;
-        })
-        .join("");
-
-      const selectedBook = bible.books[state.currentBookIndexInSelector];
-      els.chapterGrid.innerHTML = selectedBook.chapters
-        .map((_, idx) => {
-          const chapterNumber = idx + 1;
-          const isCurrent = state.currentBookIndexInSelector === state.bookIndex && state.chapterNumber === chapterNumber;
-          const cls = isCurrent ? "chapter-btn current" : "chapter-btn";
-          return `<button class="${cls}" data-chapter-number="${chapterNumber}" type="button">${chapterNumber}</button>`;
-        })
-        .join("");
-
-      renderLanguageRow();
+      document.getElementById("chapter-grid").innerHTML = books[state.selectorBookIndex].chapters.map((_, i) => 
+        `<button class="chapter-btn ${state.bookIndex === state.selectorBookIndex && state.chapterNumber === i+1 ? "current" : ""}" onclick="changeChap(${state.selectorBookIndex}, ${i+1})">${i+1}</button>`
+      ).join("");
     }
 
-    function renderLanguageRow() {
-      els.langRow.innerHTML = Object.entries(LANGUAGES)
-        .map(([lang, meta]) => {
-          const cls = state.lang === lang ? "chip active" : "chip";
-          return `<button class="${cls}" data-lang="${lang}" type="button">${meta.label}</button>`;
-        })
-        .join("");
+    function changeChap(bIdx, cNum) {
+      document.getElementById("reader").style.opacity = 0;
+      setTimeout(() => {
+        state.bookIndex = bIdx; state.chapterNumber = cNum;
+        document.getElementById("selector-overlay").classList.remove("open");
+        renderReader(); window.scrollTo(0,0);
+        document.getElementById("reader").style.opacity = 1;
+      }, 150);
     }
 
-    function renderThemeMenu() {
-      els.themeMenu.innerHTML = Object.entries(THEMES)
-        .map(([key, theme]) => {
-          const cls = state.theme === key ? "theme-btn active" : "theme-btn";
-          return `<button class="${cls}" data-theme="${key}" type="button">${theme.name}</button>`;
-        })
-        .join("");
+    function openVerse(num, text) {
+      state.selectedVerse = { num, text, book: state.currentBible.books[state.bookIndex].name };
+      document.getElementById("verse-sheet-title").textContent = `${state.selectedVerse.book} ${state.chapterNumber}:${num}`;
+      document.getElementById("verse-sheet-subtitle").textContent = LANGUAGES[state.lang].label;
+      document.getElementById("verse-sheet-text").textContent = text;
+      document.getElementById("note-input").value = "";
+      openSheet("verse-sheet");
     }
 
-    function cleanVerseText(text) {
-      return String(text || "")
-        .replace(/\s+/g, " ")
-        .replace(/В¶/g, "")
-        .trim();
-    }
+    function openSheet(id) { closeSheet(); document.getElementById("sheet-backdrop").classList.add("open"); document.getElementById(id).classList.add("open"); }
+    function closeSheet() { document.querySelectorAll(".bottom-sheet, .sheet-backdrop").forEach(el => el.classList.remove("open")); }
 
-    function escapeHtml(str) {
-      return String(str)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/\"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-    }
+    document.getElementById("open-theme").onclick = () => openSheet("theme-sheet");
+    document.getElementById("open-selector").onclick = () => { renderSelector(); document.getElementById("selector-overlay").classList.add("open"); };
+    document.getElementById("close-selector").onclick = () => document.getElementById("selector-overlay").classList.remove("open");
+    document.getElementById("sheet-backdrop").onclick = closeSheet;
+    document.querySelectorAll("#close-verse-btn, #close-notes-btn, #close-theme-btn").forEach(b => b.onclick = closeSheet);
 
-    async function loadCurrentChapter() {
-      els.reader.innerHTML = '<div class="status">Loading chapter...</div>';
-      try {
-        const loaded = await loadBible(state.lang, state.bookIndex, state.chapterNumber);
-        state.currentBible = loaded.bible;
-        state.bookIndex = loaded.bookIndex;
-        state.chapterNumber = loaded.chapterNumber;
-        state.currentBookIndexInSelector = loaded.bookIndex;
-        saveLastRef();
-        renderReader(loaded);
-        if (els.selector.classList.contains("open")) {
-          renderSelector();
-        }
-      } catch (error) {
-        els.reader.innerHTML = `<div class="status">${escapeHtml(error.message)}</div>`;
-      }
-    }
+    document.getElementById("prev-btn").onclick = () => { if (state.chapterNumber > 1) changeChap(state.bookIndex, state.chapterNumber - 1); else if (state.bookIndex > 0) changeChap(state.bookIndex - 1, state.currentBible.books[state.bookIndex - 1].chapters.length); };
+    document.getElementById("next-btn").onclick = () => { if (state.chapterNumber < state.currentBible.books[state.bookIndex].chapters.length) changeChap(state.bookIndex, state.chapterNumber + 1); else if (state.bookIndex < state.currentBible.books.length - 1) changeChap(state.bookIndex + 1, 1); };
 
-    function bindEvents() {
-      els.openSelector.addEventListener("click", openSelector);
-      els.closeSelector.addEventListener("click", closeSelector);
+    let touchX = 0;
+    document.addEventListener("touchstart", e => touchX = e.touches[0].clientX, {passive: true});
+    document.addEventListener("touchend", e => {
+      if(document.querySelector(".open")) return;
+      const dx = touchX - e.changedTouches[0].clientX;
+      if (Math.abs(dx) > 80) dx > 0 ? document.getElementById("next-btn").click() : document.getElementById("prev-btn").click();
+    }, {passive: true});
 
-      els.openTheme.addEventListener("click", (event) => {
-        event.stopPropagation();
-        toggleThemeMenu();
-      });
+    document.getElementById("copy-btn").onclick = () => { navigator.clipboard.writeText(`${state.selectedVerse.book} ${state.chapterNumber}:${state.selectedVerse.num}\n${state.selectedVerse.text}`).then(() => { showToast(t("copied")); closeSheet(); }); };
+    document.getElementById("explain-btn").onclick = () => { if(tg) tg.sendData(`explain:${state.selectedVerse.book}:${state.chapterNumber}:${state.selectedVerse.num}`); closeSheet(); };
+    document.getElementById("pray-btn").onclick = () => { if(tg) tg.sendData(`pray:${state.selectedVerse.text}`); closeSheet(); };
+    document.getElementById("prayers-btn").onclick = () => { if(tg) tg.sendData(`action:open_prayers`); };
 
-      els.themeMenu.addEventListener("click", (event) => {
-        const btn = event.target.closest("button[data-theme]");
-        if (!btn) {
-          return;
-        }
-        applyTheme(btn.dataset.theme);
-        closeThemeMenu();
-      });
+    document.getElementById("save-note-btn").onclick = () => {
+      const note = document.getElementById("note-input").value.trim(); if (!note) return;
+      const notes = JSON.parse(localStorage.getItem("bible.notes") || "[]");
+      notes.unshift({ id: Date.now(), ref: `${state.selectedVerse.book} ${state.chapterNumber}:${state.selectedVerse.num}`, txt: note });
+      localStorage.setItem("bible.notes", JSON.stringify(notes)); closeSheet(); showToast(t("save") + " ✓");
+    };
 
-      document.addEventListener("click", (event) => {
-        if (!els.themeMenu.contains(event.target) && event.target !== els.openTheme) {
-          closeThemeMenu();
-        }
-      });
+    document.getElementById("notes-btn").onclick = () => {
+      const notes = JSON.parse(localStorage.getItem("bible.notes") || "[]");
+      document.getElementById("notes-list").innerHTML = notes.length ? notes.map(n => `
+        <div style="padding:12px; background:var(--bg); border:1px solid var(--border); border-radius:12px;">
+          <strong style="display:block; margin-bottom:6px; color:var(--accent);">${n.ref}</strong>
+          <p style="margin:0 0 10px; font-size:14px;">${n.txt}</p>
+          <button class="nav-btn" style="padding:6px 12px; border:1px solid var(--border);" onclick="delNote(${n.id})">${t("del")}</button>
+        </div>`).join("") : `<div style="color:var(--muted); text-align:center; padding:20px;">${t("noNotes")}</div>`;
+      openSheet("notes-sheet");
+    };
 
-      els.bookList.addEventListener("click", (event) => {
-        const btn = event.target.closest("button[data-book-index]");
-        if (!btn) {
-          return;
-        }
-        state.currentBookIndexInSelector = Number(btn.dataset.bookIndex);
-        renderSelector();
-      });
+    window.delNote = (id) => { const notes = JSON.parse(localStorage.getItem("bible.notes") || "[]").filter(n => n.id !== id); localStorage.setItem("bible.notes", JSON.stringify(notes)); document.getElementById("notes-btn").click(); };
 
-      els.chapterGrid.addEventListener("click", (event) => {
-        const btn = event.target.closest("button[data-chapter-number]");
-        if (!btn) {
-          return;
-        }
-        state.bookIndex = state.currentBookIndexInSelector;
-        state.chapterNumber = Number(btn.dataset.chapterNumber);
-        closeSelector();
-        loadCurrentChapter();
-      });
-
-      els.langRow.addEventListener("click", (event) => {
-        const btn = event.target.closest("button[data-lang]");
-        if (!btn) {
-          return;
-        }
-        const nextLang = btn.dataset.lang;
-        setLanguage(nextLang);
-        renderLanguageRow();
-      });
-
-      document.addEventListener("keydown", (event) => {
-        if (event.key === "Escape") {
-          closeSelector();
-          closeThemeMenu();
-        }
-      });
-    }
-
-    function initTelegram() {
-      if (!tg) {
-        return;
-      }
-      try {
-        tg.ready();
-        tg.expand();
-      } catch (_) {
-      }
-      syncTelegramHeaderColor();
-    }
-
-    function init() {
-      parseLastRef();
+    async function init() {
+      document.documentElement.style.setProperty('--font-size', `${state.fontSize}px`);
+      try { const last = JSON.parse(localStorage.getItem("bible.last")); if (last) { state.bookIndex = last.b; state.chapterNumber = last.c; state.selectorBookIndex = last.b; } } catch(e){}
       applyTheme(state.theme);
-      bindEvents();
-      renderThemeMenu();
-      initTelegram();
-      loadCurrentChapter();
+      await setLanguage(state.lang);
+      if(tg) { tg.ready(); tg.expand(); }
     }
-
     init();
   </script>
 </body>
