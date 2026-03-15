@@ -1,0 +1,716 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Bible Mini App</title>
+  <style>
+    :root {
+      --bg: #f9f9f9;
+      --text: #1a1a1a;
+      --surface: #ffffff;
+      --muted: rgba(26, 26, 26, 0.6);
+      --border: rgba(26, 26, 26, 0.16);
+      --accent: #2f6ee5;
+      --header-bg: #f9f9f9;
+      --shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+    }
+
+    :root[data-theme="light"] {
+      --bg: #f9f9f9;
+      --text: #1a1a1a;
+      --surface: #ffffff;
+      --muted: rgba(26, 26, 26, 0.6);
+      --border: rgba(26, 26, 26, 0.16);
+      --accent: #2f6ee5;
+      --header-bg: #f9f9f9;
+      --shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+    }
+
+    :root[data-theme="sepia"] {
+      --bg: #f4ecd8;
+      --text: #433422;
+      --surface: #f8f0de;
+      --muted: rgba(67, 52, 34, 0.6);
+      --border: rgba(67, 52, 34, 0.2);
+      --accent: #8a5c2b;
+      --header-bg: #f4ecd8;
+      --shadow: 0 6px 18px rgba(67, 52, 34, 0.12);
+    }
+
+    :root[data-theme="dark"] {
+      --bg: #121212;
+      --text: #d1d1d1;
+      --surface: #1a1a1a;
+      --muted: rgba(209, 209, 209, 0.6);
+      --border: rgba(209, 209, 209, 0.18);
+      --accent: #8fb3ff;
+      --header-bg: #121212;
+      --shadow: 0 6px 18px rgba(0, 0, 0, 0.32);
+    }
+
+    :root[data-theme="night"] {
+      --bg: #000000;
+      --text: #a0a0a0;
+      --surface: #0b0b0b;
+      --muted: rgba(160, 160, 160, 0.62);
+      --border: rgba(160, 160, 160, 0.2);
+      --accent: #86a4ff;
+      --header-bg: #000000;
+      --shadow: 0 6px 18px rgba(0, 0, 0, 0.36);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, sans-serif;
+      transition: background-color 160ms ease, color 160ms ease;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    .app {
+      min-height: 100vh;
+      background: var(--bg);
+    }
+
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      height: 58px;
+      padding: max(8px, env(safe-area-inset-top)) 14px 8px;
+      border-bottom: 1px solid var(--border);
+      background: color-mix(in srgb, var(--header-bg) 92%, transparent);
+      backdrop-filter: blur(10px);
+    }
+
+    .header-title {
+      border: none;
+      background: transparent;
+      color: var(--text);
+      font: 600 16px/1.2 system-ui, -apple-system, sans-serif;
+      padding: 6px 8px;
+      border-radius: 10px;
+      cursor: pointer;
+      max-width: calc(100% - 80px);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .header-title:active,
+    .icon-btn:active,
+    .chip:active,
+    .chapter-btn:active,
+    .list-item:active {
+      transform: scale(0.98);
+    }
+
+    .icon-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      font: 700 15px/1 system-ui, -apple-system, sans-serif;
+      box-shadow: var(--shadow);
+    }
+
+    .reader-wrap {
+      display: flex;
+      justify-content: center;
+      padding: 14px 25px 34px;
+    }
+
+    .reader {
+      width: 100%;
+      max-width: 600px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 19px;
+      line-height: 1.7;
+      letter-spacing: 0.01em;
+    }
+
+    .chapter-heading {
+      font-family: system-ui, -apple-system, sans-serif;
+      font-size: 14px;
+      color: var(--muted);
+      margin: 2px 0 16px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .verse {
+      display: inline;
+      margin: 0;
+      white-space: normal;
+      word-break: break-word;
+    }
+
+    .verse-num {
+      vertical-align: super;
+      font-size: 0.62em;
+      color: var(--muted);
+      margin-right: 4px;
+      user-select: none;
+    }
+
+    .status,
+    .empty {
+      font-family: system-ui, -apple-system, sans-serif;
+      color: var(--muted);
+      font-size: 14px;
+      padding: 20px 0;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 40;
+      display: none;
+      flex-direction: column;
+    }
+
+    .overlay.open {
+      display: flex;
+    }
+
+    .overlay-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: max(10px, env(safe-area-inset-top)) 16px 10px;
+      border-bottom: 1px solid var(--border);
+      min-height: 58px;
+    }
+
+    .overlay-title {
+      margin: 0;
+      font: 600 16px/1.2 system-ui, -apple-system, sans-serif;
+    }
+
+    .overlay-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 0;
+      flex: 1;
+    }
+
+    .book-list {
+      border-right: 1px solid var(--border);
+      overflow: auto;
+      padding: 6px;
+    }
+
+    .list-item {
+      width: 100%;
+      text-align: left;
+      border: none;
+      background: transparent;
+      color: var(--text);
+      border-radius: 10px;
+      padding: 11px 12px;
+      margin-bottom: 4px;
+      font: 500 15px/1.2 system-ui, -apple-system, sans-serif;
+      cursor: pointer;
+    }
+
+    .list-item.active {
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .chapter-grid-wrap {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .lang-row {
+      padding: 10px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+
+    .chip {
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font: 600 12px/1.2 system-ui, -apple-system, sans-serif;
+      cursor: pointer;
+    }
+
+    .chip.active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 12%, transparent);
+    }
+
+    .chapter-grid {
+      overflow: auto;
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      align-content: start;
+    }
+
+    .chapter-btn {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 10px 0;
+      font: 600 14px/1 system-ui, -apple-system, sans-serif;
+      cursor: pointer;
+    }
+
+    .chapter-btn.current {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .theme-menu {
+      position: fixed;
+      right: 14px;
+      top: 64px;
+      z-index: 45;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      border-radius: 12px;
+      width: 200px;
+      padding: 8px;
+      display: none;
+    }
+
+    .theme-menu.open {
+      display: block;
+    }
+
+    .theme-btn {
+      width: 100%;
+      text-align: left;
+      border: none;
+      border-radius: 8px;
+      padding: 10px;
+      margin: 2px 0;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      font: 500 14px/1.2 system-ui, -apple-system, sans-serif;
+    }
+
+    .theme-btn.active {
+      color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 12%, transparent);
+    }
+
+    @media (max-width: 760px) {
+      .overlay-body {
+        grid-template-columns: 45% 55%;
+      }
+      .chapter-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 540px) {
+      .reader-wrap {
+        padding: 12px 25px 26px;
+      }
+      .overlay-body {
+        grid-template-columns: 1fr;
+      }
+      .book-list {
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        max-height: 42vh;
+      }
+      .chapter-grid {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <header class="header">
+      <button class="header-title" id="open-selector" type="button">Loading...</button>
+      <button class="icon-btn" id="open-theme" type="button" aria-label="Themes">A</button>
+    </header>
+
+    <div class="theme-menu" id="theme-menu" role="menu" aria-label="Theme menu"></div>
+
+    <main class="reader-wrap">
+      <article class="reader" id="reader">
+        <div class="status">Loading chapter...</div>
+      </article>
+    </main>
+  </div>
+
+  <section class="overlay" id="selector-overlay" aria-hidden="true">
+    <div class="overlay-header">
+      <h2 class="overlay-title">Select Book & Chapter</h2>
+      <button class="icon-btn" id="close-selector" type="button" aria-label="Close selector">x</button>
+    </div>
+    <div class="overlay-body">
+      <div class="book-list" id="book-list"></div>
+      <div class="chapter-grid-wrap">
+        <div class="lang-row" id="lang-row"></div>
+        <div class="chapter-grid" id="chapter-grid"></div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    const STORAGE_KEYS = {
+      theme: "bible.theme",
+      lang: "bible.lang",
+      lastRef: "bible.lastRef"
+    };
+
+    const THEMES = {
+      light: { name: "Light (Soft)", color: "#f9f9f9" },
+      sepia: { name: "Sepia (Paper)", color: "#f4ecd8" },
+      dark: { name: "Dark (Charcoal)", color: "#121212" },
+      night: { name: "Night (Deep)", color: "#000000" }
+    };
+
+    const LANGUAGES = {
+      ru: { label: "RU", file: "data/ru_synodal.json" },
+      en: { label: "EN", file: "data/en_akjv.json" },
+      uk: { label: "UK", file: "data/uk_ogienko.json" },
+      es: { label: "ES", file: "data/es_rv.json" }
+    };
+
+    const cache = new Map();
+
+    const state = {
+      theme: localStorage.getItem(STORAGE_KEYS.theme) || "sepia",
+      lang: localStorage.getItem(STORAGE_KEYS.lang) || "en",
+      bookIndex: 0,
+      chapterNumber: 1,
+      currentBible: null,
+      currentBookIndexInSelector: 0
+    };
+
+    const els = {
+      root: document.documentElement,
+      reader: document.getElementById("reader"),
+      headerTitle: document.getElementById("open-selector"),
+      selector: document.getElementById("selector-overlay"),
+      openSelector: document.getElementById("open-selector"),
+      closeSelector: document.getElementById("close-selector"),
+      bookList: document.getElementById("book-list"),
+      chapterGrid: document.getElementById("chapter-grid"),
+      openTheme: document.getElementById("open-theme"),
+      themeMenu: document.getElementById("theme-menu"),
+      langRow: document.getElementById("lang-row")
+    };
+
+    const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+
+    function parseLastRef() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.lastRef) || "{}");
+        if (typeof saved.bookIndex === "number" && typeof saved.chapterNumber === "number") {
+          state.bookIndex = Math.max(0, saved.bookIndex);
+          state.chapterNumber = Math.max(1, saved.chapterNumber);
+          state.currentBookIndexInSelector = state.bookIndex;
+        }
+      } catch (_) {
+      }
+    }
+
+    function saveLastRef() {
+      localStorage.setItem(STORAGE_KEYS.lastRef, JSON.stringify({
+        bookIndex: state.bookIndex,
+        chapterNumber: state.chapterNumber
+      }));
+    }
+
+    function applyTheme(theme) {
+      const selected = THEMES[theme] ? theme : "sepia";
+      state.theme = selected;
+      localStorage.setItem(STORAGE_KEYS.theme, selected);
+      els.root.dataset.theme = selected;
+      syncTelegramHeaderColor();
+      renderThemeMenu();
+    }
+
+    function syncTelegramHeaderColor() {
+      if (!tg) {
+        return;
+      }
+      const color = THEMES[state.theme].color;
+      try {
+        tg.setHeaderColor(color);
+      } catch (_) {
+        try {
+          tg.setBackgroundColor(color);
+        } catch (_) {
+        }
+      }
+    }
+
+    function closeThemeMenu() {
+      els.themeMenu.classList.remove("open");
+    }
+
+    function toggleThemeMenu() {
+      els.themeMenu.classList.toggle("open");
+    }
+
+    function openSelector() {
+      els.selector.classList.add("open");
+      els.selector.setAttribute("aria-hidden", "false");
+      renderSelector();
+    }
+
+    function closeSelector() {
+      els.selector.classList.remove("open");
+      els.selector.setAttribute("aria-hidden", "true");
+    }
+
+    function setLanguage(lang) {
+      if (!LANGUAGES[lang] || state.lang === lang) {
+        return;
+      }
+      state.lang = lang;
+      localStorage.setItem(STORAGE_KEYS.lang, lang);
+      loadCurrentChapter();
+    }
+
+    async function loadBible(lang, book, chapter) {
+      const key = lang;
+      const file = LANGUAGES[lang] && LANGUAGES[lang].file;
+      if (!file) {
+        throw new Error("Unsupported language: " + lang);
+      }
+      if (!cache.has(key)) {
+        const response = await fetch(file, { cache: "force-cache" });
+        if (!response.ok) {
+          throw new Error("Failed to load: " + file);
+        }
+        cache.set(key, await response.json());
+      }
+      const bible = cache.get(key);
+      const safeBook = Math.max(0, Math.min(book, bible.books.length - 1));
+      const selectedBook = bible.books[safeBook];
+      const safeChapter = Math.max(1, Math.min(chapter, selectedBook.chapters.length));
+      const chapterObj = selectedBook.chapters[safeChapter - 1];
+      return {
+        bible,
+        bookIndex: safeBook,
+        chapterNumber: safeChapter,
+        book: selectedBook,
+        chapter: chapterObj
+      };
+    }
+
+    function renderReader(loaded) {
+      const { book, chapter, chapterNumber } = loaded;
+      const heading = `<div class=\"chapter-heading\">${escapeHtml(book.name)} ${chapterNumber}</div>`;
+      const body = chapter.verses
+        .map((v) => {
+          const verseNum = Number(v.verse) || "";
+          const verseText = cleanVerseText(v.text);
+          return `<span class=\"verse\"><sup class=\"verse-num\">${verseNum}</sup>${escapeHtml(verseText)} </span>`;
+        })
+        .join("");
+      els.reader.innerHTML = heading + (body || '<div class="empty">No verses found.</div>');
+      els.headerTitle.textContent = `${book.name} ${chapterNumber}`;
+    }
+
+    function renderSelector() {
+      const bible = state.currentBible;
+      if (!bible) {
+        els.bookList.innerHTML = "<div class='status'>Loading books...</div>";
+        els.chapterGrid.innerHTML = "";
+        renderLanguageRow();
+        return;
+      }
+
+      const maxIndex = bible.books.length - 1;
+      state.currentBookIndexInSelector = Math.min(Math.max(state.currentBookIndexInSelector, 0), maxIndex);
+
+      els.bookList.innerHTML = bible.books
+        .map((book, index) => {
+          const cls = index === state.currentBookIndexInSelector ? "list-item active" : "list-item";
+          return `<button class="${cls}" data-book-index="${index}" type="button">${escapeHtml(book.name)}</button>`;
+        })
+        .join("");
+
+      const selectedBook = bible.books[state.currentBookIndexInSelector];
+      els.chapterGrid.innerHTML = selectedBook.chapters
+        .map((_, idx) => {
+          const chapterNumber = idx + 1;
+          const isCurrent = state.currentBookIndexInSelector === state.bookIndex && state.chapterNumber === chapterNumber;
+          const cls = isCurrent ? "chapter-btn current" : "chapter-btn";
+          return `<button class="${cls}" data-chapter-number="${chapterNumber}" type="button">${chapterNumber}</button>`;
+        })
+        .join("");
+
+      renderLanguageRow();
+    }
+
+    function renderLanguageRow() {
+      els.langRow.innerHTML = Object.entries(LANGUAGES)
+        .map(([lang, meta]) => {
+          const cls = state.lang === lang ? "chip active" : "chip";
+          return `<button class="${cls}" data-lang="${lang}" type="button">${meta.label}</button>`;
+        })
+        .join("");
+    }
+
+    function renderThemeMenu() {
+      els.themeMenu.innerHTML = Object.entries(THEMES)
+        .map(([key, theme]) => {
+          const cls = state.theme === key ? "theme-btn active" : "theme-btn";
+          return `<button class="${cls}" data-theme="${key}" type="button">${theme.name}</button>`;
+        })
+        .join("");
+    }
+
+    function cleanVerseText(text) {
+      return String(text || "")
+        .replace(/\s+/g, " ")
+        .replace(/В¶/g, "")
+        .trim();
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    async function loadCurrentChapter() {
+      els.reader.innerHTML = '<div class="status">Loading chapter...</div>';
+      try {
+        const loaded = await loadBible(state.lang, state.bookIndex, state.chapterNumber);
+        state.currentBible = loaded.bible;
+        state.bookIndex = loaded.bookIndex;
+        state.chapterNumber = loaded.chapterNumber;
+        state.currentBookIndexInSelector = loaded.bookIndex;
+        saveLastRef();
+        renderReader(loaded);
+        if (els.selector.classList.contains("open")) {
+          renderSelector();
+        }
+      } catch (error) {
+        els.reader.innerHTML = `<div class="status">${escapeHtml(error.message)}</div>`;
+      }
+    }
+
+    function bindEvents() {
+      els.openSelector.addEventListener("click", openSelector);
+      els.closeSelector.addEventListener("click", closeSelector);
+
+      els.openTheme.addEventListener("click", (event) => {
+        event.stopPropagation();
+        toggleThemeMenu();
+      });
+
+      els.themeMenu.addEventListener("click", (event) => {
+        const btn = event.target.closest("button[data-theme]");
+        if (!btn) {
+          return;
+        }
+        applyTheme(btn.dataset.theme);
+        closeThemeMenu();
+      });
+
+      document.addEventListener("click", (event) => {
+        if (!els.themeMenu.contains(event.target) && event.target !== els.openTheme) {
+          closeThemeMenu();
+        }
+      });
+
+      els.bookList.addEventListener("click", (event) => {
+        const btn = event.target.closest("button[data-book-index]");
+        if (!btn) {
+          return;
+        }
+        state.currentBookIndexInSelector = Number(btn.dataset.bookIndex);
+        renderSelector();
+      });
+
+      els.chapterGrid.addEventListener("click", (event) => {
+        const btn = event.target.closest("button[data-chapter-number]");
+        if (!btn) {
+          return;
+        }
+        state.bookIndex = state.currentBookIndexInSelector;
+        state.chapterNumber = Number(btn.dataset.chapterNumber);
+        closeSelector();
+        loadCurrentChapter();
+      });
+
+      els.langRow.addEventListener("click", (event) => {
+        const btn = event.target.closest("button[data-lang]");
+        if (!btn) {
+          return;
+        }
+        const nextLang = btn.dataset.lang;
+        setLanguage(nextLang);
+        renderLanguageRow();
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          closeSelector();
+          closeThemeMenu();
+        }
+      });
+    }
+
+    function initTelegram() {
+      if (!tg) {
+        return;
+      }
+      try {
+        tg.ready();
+        tg.expand();
+      } catch (_) {
+      }
+      syncTelegramHeaderColor();
+    }
+
+    function init() {
+      parseLastRef();
+      applyTheme(state.theme);
+      bindEvents();
+      renderThemeMenu();
+      initTelegram();
+      loadCurrentChapter();
+    }
+
+    init();
+  </script>
+</body>
+</html>
