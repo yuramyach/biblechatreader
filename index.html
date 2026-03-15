@@ -10,87 +10,78 @@
       --bg: #ffffff; --text: #1d1d1f; --surface: #f5f5f7;
       --muted: #86868b; --border: rgba(0, 0, 0, 0.08);
       --accent: #007aff; --nav-bg: rgba(255, 255, 255, 0.85);
-      --shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
-      --font-size: 19px;
+      --shadow: 0 -4px 24px rgba(0, 0, 0, 0.08); --font-size: 19px;
     }
     :root[data-theme="sepia"] {
       --bg: #fbf0d9; --text: #433422; --surface: #f0e3c8;
       --muted: #8a7b66; --border: rgba(67, 52, 34, 0.15);
       --accent: #d97706; --nav-bg: rgba(251, 240, 217, 0.85);
+      --shadow: 0 -4px 24px rgba(67, 52, 34, 0.1);
     }
     :root[data-theme="dark"] {
       --bg: #1c1c1e; --text: #f5f5f7; --surface: #2c2c2e;
       --muted: #8e8e93; --border: rgba(255, 255, 255, 0.1);
       --accent: #0a84ff; --nav-bg: rgba(28, 28, 30, 0.85);
+      --shadow: 0 -4px 24px rgba(0, 0, 0, 0.4);
     }
     :root[data-theme="night"] {
       --bg: #000000; --text: #e5e5ea; --surface: #1c1c1e;
       --muted: #666666; --border: rgba(255, 255, 255, 0.2);
       --accent: #5e5ce6; --nav-bg: rgba(0, 0, 0, 0.85);
+      --shadow: 0 -4px 24px rgba(0, 0, 0, 0.5);
     }
 
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    body {
-      margin: 0; padding: 0; min-height: 100vh;
-      background: var(--bg); color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      touch-action: pan-y; transition: background 0.3s, color 0.3s;
-    }
-    
-    .header {
-      position: sticky; top: 0; z-index: 30; display: flex; align-items: center; justify-content: space-between;
-      padding: max(12px, env(safe-area-inset-top)) 16px 12px;
-      border-bottom: 1px solid var(--border); background: var(--nav-bg); backdrop-filter: blur(12px);
-    }
+    body { margin: 0; padding: 0; min-height: 100vh; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; transition: background 0.3s, color 0.3s; }
+
+    .header { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; justify-content: space-between; padding: max(12px, env(safe-area-inset-top)) 16px 12px; border-bottom: 1px solid var(--border); background: var(--nav-bg); backdrop-filter: blur(12px); }
     .header-title { border: none; background: transparent; color: var(--text); font-size: 17px; font-weight: 600; cursor: pointer; }
     .icon-btn { width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; font-weight: 600; }
 
-    .reader-wrap { display: flex; justify-content: center; padding: 20px 24px 120px; }
+    .reader-wrap { display: flex; justify-content: center; padding: 20px 24px 140px; }
     .reader { width: 100%; max-width: 640px; font-family: Georgia, serif; font-size: var(--font-size); line-height: 1.65; transition: opacity 0.3s; }
-    .chapter-heading { font-family: sans-serif; font-size: 14px; color: var(--muted); text-transform: uppercase; font-weight: bold; margin-bottom: 24px; }
-    .verse { display: inline; cursor: pointer; border-radius: 6px; padding: 2px; }
-    .verse-num { font-size: 0.6em; color: var(--accent); font-weight: bold; vertical-align: super; margin-right: 6px; user-select: none; }
+    .chapter-heading { font-family: sans-serif; font-size: 15px; color: var(--muted); text-transform: uppercase; font-weight: bold; margin-bottom: 24px; }
 
-    .bottom-nav {
-      position: fixed; left: 0; right: 0; bottom: 0; z-index: 25; border-top: 1px solid var(--border);
-      background: var(--nav-bg); backdrop-filter: blur(12px); padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
-      display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
-    }
-    .nav-btn { border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 12px; padding: 12px 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .verse { display: inline; cursor: pointer; border-radius: 6px; padding: 2px 0; transition: background 0.2s, color 0.2s; }
+    .verse.selected { background: var(--accent); color: #fff; border-radius: 4px; padding: 2px; }
+    .verse.selected .verse-num { color: #fff; opacity: 0.9; }
+    .verse-num { font-size: 0.6em; color: var(--accent); font-weight: bold; vertical-align: super; margin-right: 4px; user-select: none; }
+
+    .bottom-nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 25; border-top: 1px solid var(--border); background: var(--nav-bg); backdrop-filter: blur(12px); padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .nav-btn { border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 10px; padding: 12px 4px; font-size: 13px; font-weight: 600; cursor: pointer; text-align: center; }
 
     .overlay { position: fixed; inset: 0; z-index: 40; display: none; flex-direction: column; background: var(--bg); }
     .overlay.open { display: flex; }
     .overlay-header { display: flex; justify-content: space-between; padding: max(12px, env(safe-area-inset-top)) 16px 12px; border-bottom: 1px solid var(--border); }
     .overlay-title { margin: 0; font-size: 18px; font-weight: 700; }
     .overlay-body { display: grid; grid-template-columns: 1fr 1fr; flex: 1; overflow: hidden; }
-    
+
     .book-list { border-right: 1px solid var(--border); overflow-y: auto; padding: 8px; }
     .list-item { width: 100%; border: none; background: transparent; color: var(--text); text-align: left; padding: 14px; border-radius: 10px; font-size: 15px; cursor: pointer; }
     .list-item.active { background: var(--accent); color: #fff; font-weight: 600; }
-    
+
     .chapter-grid { overflow-y: auto; padding: 16px; display: grid; gap: 10px; grid-template-columns: repeat(4, 1fr); align-content: start; }
     .chapter-btn { border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 12px; padding: 14px 0; font-size: 16px; font-weight: 600; cursor: pointer; }
     .chapter-btn.current { border-color: var(--accent); color: var(--accent); }
 
     .lang-row { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; gap: 10px; overflow-x: auto; }
-    .chip { border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 20px; padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .chip { border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 20px; padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer; flex-shrink: 0; }
     .chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
     .sheet-backdrop { position: fixed; inset: 0; z-index: 50; background: rgba(0,0,0,0.4); opacity: 0; pointer-events: none; transition: 0.3s; }
     .sheet-backdrop.open { opacity: 1; pointer-events: auto; }
-    .bottom-sheet {
-      position: fixed; left: 0; right: 0; bottom: 0; z-index: 51; background: var(--surface);
-      border-radius: 24px 24px 0 0; padding: 16px 20px calc(20px + env(safe-area-inset-bottom));
-      transform: translateY(105%); transition: 0.3s; max-height: 85vh; overflow-y: auto;
-    }
+
+    .bottom-sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 51; background: var(--surface); border-radius: 24px 24px 0 0; padding: 16px 20px calc(20px + env(safe-area-inset-bottom)); transform: translateY(105%); transition: 0.3s; max-height: 85vh; overflow-y: auto; box-shadow: var(--shadow); }
     .bottom-sheet.open { transform: translateY(0); }
+
+    #verse-sheet { z-index: 60; box-shadow: var(--shadow); border-top: 1px solid var(--border); max-height: 55vh; }
     .sheet-handle { width: 40px; height: 5px; border-radius: 3px; background: var(--muted); margin: 0 auto 16px; opacity: 0.5; }
-    .sheet-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 16px 0; }
-    .sheet-textarea { width: 100%; min-height: 100px; border: 1px solid var(--border); border-radius: 12px; padding: 12px; background: var(--bg); color: var(--text); font-size: 15px; margin-bottom: 12px; }
-    
+    .sheet-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0; }
+    .sheet-textarea { width: 100%; min-height: 80px; border: 1px solid var(--border); border-radius: 12px; padding: 12px; background: var(--bg); color: var(--text); font-size: 15px; margin-bottom: 12px; font-family: inherit;}
+
     .toast { position: fixed; top: 20px; left: 50%; transform: translate(-50%, -20px); background: var(--text); color: var(--bg); padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: bold; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 100; }
     .toast.show { opacity: 1; transform: translate(-50%, 0); }
-    
+
     .font-controls { display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 16px; }
     .font-btn { flex: 1; border: 1px solid var(--border); background: var(--bg); color: var(--text); border-radius: 10px; padding: 10px; font-weight: bold; font-size: 16px; cursor: pointer; }
 
@@ -107,7 +98,7 @@
     </header>
 
     <main class="reader-wrap">
-      <article class="reader" id="reader"><div style="text-align:center; padding: 40px; color: var(--muted);">Инициализация...</div></article>
+      <article class="reader" id="reader"><div style="text-align:center; padding: 40px; color: var(--muted);">Загрузка...</div></article>
     </main>
 
     <nav class="bottom-nav">
@@ -134,21 +125,26 @@
 
   <section class="bottom-sheet" id="verse-sheet">
     <div class="sheet-handle"></div>
-    <h3 style="margin:0 0 4px; font-size:18px;" id="verse-sheet-title">Стих</h3>
-    <p style="margin:0 0 16px; color:var(--muted); font-size:13px;" id="verse-sheet-subtitle"></p>
-    <p style="margin:0; font-family:Georgia, serif; font-size:18px; line-height:1.5;" id="verse-sheet-text"></p>
-    
+    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div>
+            <h3 style="margin:0 0 4px; font-size:17px;" id="verse-sheet-title">Стих</h3>
+            <p style="margin:0 0 12px; color:var(--accent); font-size:13px; font-weight: bold;" id="verse-sheet-count"></p>
+        </div>
+        <button class="icon-btn" style="width: 28px; height: 28px; font-size: 12px;" onclick="clearSelectionAndClose()">✕</button>
+    </div>
+
+    <div style="max-height: 120px; overflow-y: auto; margin-bottom: 12px; padding-right: 5px; border-left: 3px solid var(--accent); padding-left: 10px;">
+        <p style="margin:0; font-family:Georgia, serif; font-size:16px; line-height:1.5;" id="verse-sheet-text"></p>
+    </div>
+
     <div class="sheet-actions">
       <button class="nav-btn" style="border:none; background:var(--bg);" id="copy-btn">📋 <span id="txt-copy">Копия</span></button>
       <button class="nav-btn" style="border:none; background:var(--bg); color:var(--accent);" id="explain-btn">💡 <span id="txt-explain">Смысл</span></button>
       <button class="nav-btn" style="border:none; background:var(--bg); color:var(--accent);" id="pray-btn">🙏 <span id="txt-pray">Молитва</span></button>
     </div>
-    
-    <textarea class="sheet-textarea" id="note-input" placeholder="Заметка..."></textarea>
-    <div style="display:flex; gap:10px;">
-      <button class="nav-btn" style="flex:1;" id="close-verse-btn">Отмена</button>
-      <button class="nav-btn" style="flex:1; background:var(--accent); color:#fff; border:none;" id="save-note-btn">Сохранить</button>
-    </div>
+
+    <textarea class="sheet-textarea" id="note-input" placeholder="Заметка к выбранным стихам..."></textarea>
+    <button class="nav-btn" style="width: 100%; background:var(--accent); color:#fff; border:none;" id="save-note-btn">Сохранить заметку</button>
   </section>
 
   <section class="bottom-sheet" id="notes-sheet">
@@ -172,25 +168,28 @@
   <script>
     const THEMES = { light: "Светлая", sepia: "Бумага", dark: "Темная", night: "Ночь" };
     const LANGUAGES = { ru: { label: "RU", file: "data/ru_synodal.json" }, en: { label: "EN", file: "data/en_akjv.json" }, uk: { label: "UK", file: "data/uk_ogienko.json" }, es: { label: "ES", file: "data/es_rv.json" } };
-    
+
     const STRINGS = {
-      ru: { select: "Выбор книги", prayers: "Молитвы", notes: "Заметки", copy: "Копия", copied: "Скопировано!", explain: "Смысл", pray: "Молитва", save: "Сохранить", cancel: "Отмена", close: "Закрыть", theme: "Настройки", noNotes: "Нет заметок", del: "Удалить", prev: "◀ Назад", next: "Вперед ▶" },
-      en: { select: "Select Book", prayers: "Prayers", notes: "Notes", copy: "Copy", copied: "Copied!", explain: "Explain", pray: "Pray", save: "Save", cancel: "Cancel", close: "Close", theme: "Settings", noNotes: "No notes", del: "Delete", prev: "◀ Prev", next: "Next ▶" },
-      uk: { select: "Вибір книги", prayers: "Молитви", notes: "Нотатки", copy: "Копія", copied: "Скопійовано!", explain: "Сенс", pray: "Молитва", save: "Зберегти", cancel: "Скасувати", close: "Закрити", theme: "Налаштування", noNotes: "Немає нотаток", del: "Видалити", prev: "◀ Назад", next: "Вперед ▶" },
-      es: { select: "Seleccionar", prayers: "Oraciones", notes: "Notas", copy: "Copiar", copied: "¡Copiado!", explain: "Explicar", pray: "Orar", save: "Guardar", cancel: "Cancelar", close: "Cerrar", theme: "Ajustes", noNotes: "Sin notas", del: "Borrar", prev: "◀ Ant", next: "Sig ▶" }
+      ru: { select: "Выбор книги", prayers: "Молитвы", notes: "Заметки", copy: "Копия", copied: "Скопировано!", explain: "Смысл", pray: "Молитва", save: "Сохранить", theme: "Настройки", noNotes: "Нет заметок", del: "Удалить", prev: "◀ Назад", next: "Вперед ▶", selected: "Выбрано стихов: " },
+      en: { select: "Select Book", prayers: "Prayers", notes: "Notes", copy: "Copy", copied: "Copied!", explain: "Explain", pray: "Pray", save: "Save", theme: "Settings", noNotes: "No notes", del: "Delete", prev: "◀ Prev", next: "Next ▶", selected: "Verses selected: " },
+      uk: { select: "Вибір книги", prayers: "Молитви", notes: "Нотатки", copy: "Копія", copied: "Скопійовано!", explain: "Сенс", pray: "Молитва", save: "Зберегти", theme: "Налаштування", noNotes: "Немає нотаток", del: "Видалити", prev: "◀ Назад", next: "Вперед ▶", selected: "Обрано віршів: " },
+      es: { select: "Seleccionar", prayers: "Oraciones", notes: "Notas", copy: "Copiar", copied: "¡Copiado!", explain: "Explicar", pray: "Orar", save: "Guardar", theme: "Ajustes", noNotes: "Sin notas", del: "Borrar", prev: "◀ Ant", next: "Sig ▶", selected: "Versículos seleccionados: " }
     };
 
     const state = {
       theme: localStorage.getItem("bible.theme") || "sepia",
       lang: localStorage.getItem("bible.lang") || "ru",
       fontSize: parseInt(localStorage.getItem("bible.fontSize")) || 19,
-      bookIndex: 0, chapterNumber: 1, currentBible: null, selectorBookIndex: 0, selectedVerse: null
+      bookIndex: 0, chapterNumber: 1, currentBible: null, selectorBookIndex: 0,
+      selectedVerses: new Map(),
+      selectedRefText: ""
     };
 
     const tg = window.Telegram?.WebApp;
     const cache = new Map();
 
     function t(key) { return (STRINGS[state.lang] || STRINGS.en)[key] || key; }
+    function escapeHtml(str) { return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
 
     function updateLabels() {
       document.getElementById("selector-title").textContent = t("select");
@@ -202,7 +201,6 @@
       document.getElementById("txt-explain").textContent = t("explain");
       document.getElementById("txt-pray").textContent = t("pray");
       document.getElementById("save-note-btn").textContent = t("save");
-      document.getElementById("close-verse-btn").textContent = t("cancel");
       document.getElementById("notes-sheet-title").textContent = t("notes");
       document.getElementById("close-notes-btn").textContent = t("close");
       document.getElementById("theme-title").textContent = t("theme");
@@ -222,7 +220,7 @@
 
     function applyTheme(t) {
       state.theme = t; localStorage.setItem("bible.theme", t); document.documentElement.dataset.theme = t;
-      document.getElementById("theme-options").innerHTML = Object.entries(THEMES).map(([k, name]) => 
+      document.getElementById("theme-options").innerHTML = Object.entries(THEMES).map(([k, name]) =>
         `<button class="list-item ${k===state.theme?'active':''}" style="border:1px solid var(--border);" onclick="applyTheme('${k}')">${name}</button>`
       ).join("");
       if (tg) { const c = { light: "#ffffff", sepia: "#fbf0d9", dark: "#1c1c1e", night: "#000000" }; try { tg.setHeaderColor(c[t]); tg.setBackgroundColor(c[t]); } catch(e){} }
@@ -230,53 +228,97 @@
 
     async function setLanguage(newLang) {
       state.lang = newLang; localStorage.setItem("bible.lang", newLang);
-      updateLabels();
-      
-      document.getElementById("lang-row").innerHTML = Object.entries(LANGUAGES).map(([k, v]) => 
+      updateLabels(); clearSelectionAndClose();
+
+      document.getElementById("lang-row").innerHTML = Object.entries(LANGUAGES).map(([k, v]) =>
         `<button class="chip ${k === state.lang ? "active" : ""}" onclick="setLanguage('${k}')">${v.label}</button>`
       ).join("");
 
       document.getElementById("reader").style.opacity = 0;
-      
+
       try {
         if (!cache.has(newLang)) {
           const res = await fetch(LANGUAGES[newLang].file);
-          if (!res.ok) throw new Error("Файл не найден");
           cache.set(newLang, await res.json());
         }
         state.currentBible = cache.get(newLang);
-        
         state.bookIndex = Math.min(state.bookIndex, state.currentBible.books.length - 1);
         state.chapterNumber = Math.min(state.chapterNumber, state.currentBible.books[state.bookIndex].chapters.length);
         state.selectorBookIndex = state.bookIndex;
 
         renderReader();
         if(document.getElementById("selector-overlay").classList.contains("open")) renderSelector();
-        
         setTimeout(() => document.getElementById("reader").style.opacity = 1, 150);
       } catch (e) {
         document.getElementById("reader").style.opacity = 1;
-        document.getElementById("reader").innerHTML = `<div style="text-align:center; padding: 40px; color: red;"><b>Ошибка загрузки!</b><br><small>Вы открыли файл локально. Используйте локальный сервер (PyCharm) или залейте файлы на GitHub Pages.</small></div>`;
-        document.getElementById("open-selector").textContent = "Ошибка";
+        document.getElementById("reader").innerHTML = `<div style="text-align:center; padding: 40px; color: red;"><b>Ошибка загрузки!</b><br>Файлы не найдены.</div>`;
       }
     }
 
     function renderReader() {
-      const book = state.currentBible.books[state.bookIndex];
-      document.getElementById("open-selector").textContent = `${book.name} ${state.chapterNumber} ▾`;
-      let html = `<div class="chapter-heading">${book.name} ${state.chapterNumber}</div>`;
-      html += book.chapters[state.chapterNumber - 1].verses.map(v => `<span class="verse" onclick="openVerse(${v.verse}, '${v.text.replace(/'/g, "\\'")}')"><sup class="verse-num">${v.verse}</sup>${v.text} </span>`).join("");
+      const bookName = state.currentBible.books[state.bookIndex].name;
+      document.getElementById("open-selector").textContent = `${bookName} ${state.chapterNumber} ▾`;
+
+      let html = `<div class="chapter-heading">${bookName} ${state.chapterNumber}</div>`;
+      html += state.currentBible.books[state.bookIndex].chapters[state.chapterNumber - 1].verses.map(v =>
+        `<span class="verse" data-num="${v.verse}" data-text="${escapeHtml(v.text)}"><sup class="verse-num">${v.verse}</sup>${v.text} </span>`
+      ).join("");
+
       document.getElementById("reader").innerHTML = html;
       localStorage.setItem("bible.last", JSON.stringify({ b: state.bookIndex, c: state.chapterNumber }));
+      clearSelectionAndClose();
+    }
+
+    // Делегирование событий клика по стихам
+    document.getElementById("reader").addEventListener("click", e => {
+      const el = e.target.closest(".verse");
+      if (el) toggleVerse(parseInt(el.dataset.num), el.dataset.text, el);
+    });
+
+    function toggleVerse(num, text, el) {
+      if (state.selectedVerses.has(num)) {
+        state.selectedVerses.delete(num);
+        el.classList.remove("selected");
+      } else {
+        state.selectedVerses.set(num, text);
+        el.classList.add("selected");
+      }
+
+      if (state.selectedVerses.size > 0) {
+        updateVerseSheet();
+      } else {
+        document.getElementById("verse-sheet").classList.remove("open");
+      }
+    }
+
+    function clearSelectionAndClose() {
+      state.selectedVerses.clear();
+      document.querySelectorAll('.verse.selected').forEach(el => el.classList.remove('selected'));
+      document.getElementById("verse-sheet").classList.remove("open");
+    }
+
+    function updateVerseSheet() {
+      const bookName = state.currentBible.books[state.bookIndex].name;
+      const nums = Array.from(state.selectedVerses.keys()).sort((a,b) => a - b);
+
+      const combinedText = nums.map(n => `[${n}] ${state.selectedVerses.get(n)}`).join(" ");
+      const displayRef = nums.length > 1 ? `${nums[0]}-${nums[nums.length-1]}` : nums[0];
+      state.selectedRefText = `${bookName} ${state.chapterNumber}:${displayRef}`;
+
+      document.getElementById("verse-sheet-title").textContent = state.selectedRefText;
+      document.getElementById("verse-sheet-count").textContent = t("selected") + nums.length;
+      document.getElementById("verse-sheet-text").textContent = combinedText;
+
+      document.getElementById("note-input").value = "";
+      document.getElementById("verse-sheet").classList.add("open");
     }
 
     function renderSelector() {
-      const books = state.currentBible.books;
-      document.getElementById("book-list").innerHTML = books.map((b, i) => 
+      document.getElementById("book-list").innerHTML = state.currentBible.books.map((b, i) =>
         `<button class="list-item ${i === state.selectorBookIndex ? "active" : ""}" onclick="state.selectorBookIndex=${i}; renderSelector();">${b.name}</button>`
       ).join("");
 
-      document.getElementById("chapter-grid").innerHTML = books[state.selectorBookIndex].chapters.map((_, i) => 
+      document.getElementById("chapter-grid").innerHTML = state.currentBible.books[state.selectorBookIndex].chapters.map((_, i) =>
         `<button class="chapter-btn ${state.bookIndex === state.selectorBookIndex && state.chapterNumber === i+1 ? "current" : ""}" onclick="changeChap(${state.selectorBookIndex}, ${i+1})">${i+1}</button>`
       ).join("");
     }
@@ -291,45 +333,40 @@
       }, 150);
     }
 
-    function openVerse(num, text) {
-      state.selectedVerse = { num, text, book: state.currentBible.books[state.bookIndex].name };
-      document.getElementById("verse-sheet-title").textContent = `${state.selectedVerse.book} ${state.chapterNumber}:${num}`;
-      document.getElementById("verse-sheet-subtitle").textContent = LANGUAGES[state.lang].label;
-      document.getElementById("verse-sheet-text").textContent = text;
-      document.getElementById("note-input").value = "";
-      openSheet("verse-sheet");
-    }
-
-    function openSheet(id) { closeSheet(); document.getElementById("sheet-backdrop").classList.add("open"); document.getElementById(id).classList.add("open"); }
+    function openSheet(id) { document.querySelectorAll(".bottom-sheet").forEach(el => el.classList.remove("open")); document.getElementById("sheet-backdrop").classList.add("open"); document.getElementById(id).classList.add("open"); }
     function closeSheet() { document.querySelectorAll(".bottom-sheet, .sheet-backdrop").forEach(el => el.classList.remove("open")); }
 
     document.getElementById("open-theme").onclick = () => openSheet("theme-sheet");
     document.getElementById("open-selector").onclick = () => { renderSelector(); document.getElementById("selector-overlay").classList.add("open"); };
     document.getElementById("close-selector").onclick = () => document.getElementById("selector-overlay").classList.remove("open");
     document.getElementById("sheet-backdrop").onclick = closeSheet;
-    document.querySelectorAll("#close-verse-btn, #close-notes-btn, #close-theme-btn").forEach(b => b.onclick = closeSheet);
+    document.querySelectorAll("#close-notes-btn, #close-theme-btn").forEach(b => b.onclick = closeSheet);
 
     document.getElementById("prev-btn").onclick = () => { if (state.chapterNumber > 1) changeChap(state.bookIndex, state.chapterNumber - 1); else if (state.bookIndex > 0) changeChap(state.bookIndex - 1, state.currentBible.books[state.bookIndex - 1].chapters.length); };
     document.getElementById("next-btn").onclick = () => { if (state.chapterNumber < state.currentBible.books[state.bookIndex].chapters.length) changeChap(state.bookIndex, state.chapterNumber + 1); else if (state.bookIndex < state.currentBible.books.length - 1) changeChap(state.bookIndex + 1, 1); };
 
-    let touchX = 0;
-    document.addEventListener("touchstart", e => touchX = e.touches[0].clientX, {passive: true});
-    document.addEventListener("touchend", e => {
-      if(document.querySelector(".open")) return;
-      const dx = touchX - e.changedTouches[0].clientX;
-      if (Math.abs(dx) > 80) dx > 0 ? document.getElementById("next-btn").click() : document.getElementById("prev-btn").click();
-    }, {passive: true});
+    document.getElementById("copy-btn").onclick = () => {
+      const txt = `${state.selectedRefText}\n${document.getElementById("verse-sheet-text").textContent}`;
+      navigator.clipboard.writeText(txt).then(() => { showToast(t("copied")); clearSelectionAndClose(); });
+    };
 
-    document.getElementById("copy-btn").onclick = () => { navigator.clipboard.writeText(`${state.selectedVerse.book} ${state.chapterNumber}:${state.selectedVerse.num}\n${state.selectedVerse.text}`).then(() => { showToast(t("copied")); closeSheet(); }); };
-    document.getElementById("explain-btn").onclick = () => { if(tg) tg.sendData(`explain:${state.selectedVerse.book}:${state.chapterNumber}:${state.selectedVerse.num}`); closeSheet(); };
-    document.getElementById("pray-btn").onclick = () => { if(tg) tg.sendData(`pray:${state.selectedVerse.text}`); closeSheet(); };
+    document.getElementById("explain-btn").onclick = () => {
+      if(tg) tg.sendData(`explain:${state.currentBible.books[state.bookIndex].name}:${state.chapterNumber}:${Array.from(state.selectedVerses.keys()).join(",")}`);
+      clearSelectionAndClose();
+    };
+
+    document.getElementById("pray-btn").onclick = () => {
+      if(tg) tg.sendData(`pray:${document.getElementById("verse-sheet-text").textContent}`);
+      clearSelectionAndClose();
+    };
+
     document.getElementById("prayers-btn").onclick = () => { if(tg) tg.sendData(`action:open_prayers`); };
 
     document.getElementById("save-note-btn").onclick = () => {
       const note = document.getElementById("note-input").value.trim(); if (!note) return;
       const notes = JSON.parse(localStorage.getItem("bible.notes") || "[]");
-      notes.unshift({ id: Date.now(), ref: `${state.selectedVerse.book} ${state.chapterNumber}:${state.selectedVerse.num}`, txt: note });
-      localStorage.setItem("bible.notes", JSON.stringify(notes)); closeSheet(); showToast(t("save") + " ✓");
+      notes.unshift({ id: Date.now(), ref: state.selectedRefText, txt: note });
+      localStorage.setItem("bible.notes", JSON.stringify(notes)); clearSelectionAndClose(); showToast(t("save") + " ✓");
     };
 
     document.getElementById("notes-btn").onclick = () => {
