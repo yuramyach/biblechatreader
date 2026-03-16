@@ -42,12 +42,10 @@
     .reader { width: 100%; max-width: 640px; font-family: Georgia, serif; font-size: var(--font-size); line-height: 1.65; transition: opacity 0.3s; }
     .chapter-heading { font-family: sans-serif; font-size: 15px; color: var(--muted); text-transform: uppercase; font-weight: bold; margin-bottom: 24px; }
     
-    .verse { display: inline; cursor: pointer; border-radius: 6px; padding: 2px 0; transition: background 0.2s, color 0.2s; }
-    .verse.selected { background: var(--accent); color: #fff; border-radius: 4px; padding: 2px; }
-    .verse.selected .verse-num { color: #fff; opacity: 0.9; }
+    .verse { display: inline; }
     .verse-num { font-size: 0.6em; color: var(--accent); font-weight: bold; vertical-align: super; margin-right: 4px; user-select: none; }
 
-    .bottom-nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 25; border-top: 1px solid var(--border); background: var(--nav-bg); backdrop-filter: blur(12px); padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .bottom-nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 25; border-top: 1px solid var(--border); background: var(--nav-bg); backdrop-filter: blur(12px); padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
     .nav-btn { border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 10px; padding: 12px 4px; font-size: 13px; font-weight: 600; cursor: pointer; text-align: center; }
 
     .overlay { position: fixed; inset: 0; z-index: 40; display: none; flex-direction: column; background: var(--bg); }
@@ -60,7 +58,7 @@
     .list-item { width: 100%; border: none; background: transparent; color: var(--text); text-align: left; padding: 14px; border-radius: 10px; font-size: 15px; cursor: pointer; }
     .list-item.active { background: var(--accent); color: #fff; font-weight: 600; }
     
-    .chapter-grid { overflow-y: auto; padding: 16px; display: grid; gap: 10px; grid-template-columns: repeat(4, 1fr); align-content: start; }
+    .chapter-grid { overflow-y: auto; padding: 16px; display: grid; gap: 10px; grid-template-columns: repeat(3, 1fr); align-content: start; }
     .chapter-btn { border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 12px; padding: 14px 0; font-size: 16px; font-weight: 600; cursor: pointer; }
     .chapter-btn.current { border-color: var(--accent); color: var(--accent); }
 
@@ -74,10 +72,7 @@
     .bottom-sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 51; background: var(--surface); border-radius: 24px 24px 0 0; padding: 16px 20px calc(20px + env(safe-area-inset-bottom)); transform: translateY(105%); transition: 0.3s; max-height: 85vh; overflow-y: auto; box-shadow: var(--shadow); }
     .bottom-sheet.open { transform: translateY(0); }
     
-    #verse-sheet { z-index: 60; box-shadow: var(--shadow); border-top: 1px solid var(--border); max-height: 55vh; }
     .sheet-handle { width: 40px; height: 5px; border-radius: 3px; background: var(--muted); margin: 0 auto 16px; opacity: 0.5; }
-    .sheet-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0; }
-    .sheet-textarea { width: 100%; min-height: 80px; border: 1px solid var(--border); border-radius: 12px; padding: 12px; background: var(--bg); color: var(--text); font-size: 15px; margin-bottom: 12px; font-family: inherit;}
     
     .toast { position: fixed; top: 20px; left: 50%; transform: translate(-50%, -20px); background: var(--text); color: var(--bg); padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: bold; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 100; }
     .toast.show { opacity: 1; transform: translate(-50%, 0); }
@@ -103,7 +98,6 @@
 
     <nav class="bottom-nav">
       <button class="nav-btn" id="prev-btn">◀ Назад</button>
-      <button class="nav-btn" id="prayers-btn">Молитвы</button>
       <button class="nav-btn" id="notes-btn">Заметки</button>
       <button class="nav-btn" id="next-btn">Вперед ▶</button>
     </nav>
@@ -123,30 +117,6 @@
 
   <div class="sheet-backdrop" id="sheet-backdrop"></div>
 
-  <section class="bottom-sheet" id="verse-sheet">
-    <div class="sheet-handle"></div>
-    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-        <div>
-            <h3 style="margin:0 0 4px; font-size:17px;" id="verse-sheet-title">Стих</h3>
-            <p style="margin:0 0 12px; color:var(--accent); font-size:13px; font-weight: bold;" id="verse-sheet-count"></p>
-        </div>
-        <button class="icon-btn" style="width: 28px; height: 28px; font-size: 12px;" onclick="clearSelectionAndClose()">✕</button>
-    </div>
-    
-    <div style="max-height: 120px; overflow-y: auto; margin-bottom: 12px; padding-right: 5px; border-left: 3px solid var(--accent); padding-left: 10px;">
-        <p style="margin:0; font-family:Georgia, serif; font-size:16px; line-height:1.5;" id="verse-sheet-text"></p>
-    </div>
-    
-    <div class="sheet-actions">
-      <!-- FIX: renamed "Копия" → "Копировать", "Смысл" → "Пояснить" -->
-      <button class="nav-btn" style="border:none; background:var(--bg);" id="copy-btn">📋 <span id="txt-copy">Копировать</span></button>
-      <button class="nav-btn" style="border:none; background:var(--bg); color:var(--accent);" id="explain-btn">💡 <span id="txt-explain">Пояснить</span></button>
-      <button class="nav-btn" style="border:none; background:var(--bg); color:var(--accent);" id="pray-btn">🙏 <span id="txt-pray">Молитва</span></button>
-    </div>
-    
-    <textarea class="sheet-textarea" id="note-input" placeholder="Заметка к выбранным стихам..."></textarea>
-    <button class="nav-btn" style="width: 100%; background:var(--accent); color:#fff; border:none;" id="save-note-btn">Сохранить заметку</button>
-  </section>
 
   <section class="bottom-sheet" id="notes-sheet">
     <div class="sheet-handle"></div>
@@ -182,8 +152,6 @@
       lang: localStorage.getItem("bible.lang") || "ru",
       fontSize: parseInt(localStorage.getItem("bible.fontSize")) || 19,
       bookIndex: 0, chapterNumber: 1, currentBible: null, selectorBookIndex: 0,
-      selectedVerses: new Map(), 
-      selectedRefText: "" 
     };
 
     const tg = window.Telegram?.WebApp;
@@ -196,16 +164,9 @@
       document.getElementById("selector-title").textContent = t("select");
       document.getElementById("prev-btn").textContent = t("prev");
       document.getElementById("next-btn").textContent = t("next");
-      document.getElementById("prayers-btn").textContent = t("prayers");
       document.getElementById("notes-btn").textContent = t("notes");
-      document.getElementById("txt-copy").textContent = t("copy");
-      document.getElementById("txt-explain").textContent = t("explain");
-      document.getElementById("txt-pray").textContent = t("pray");
-      document.getElementById("save-note-btn").textContent = t("save");
       document.getElementById("notes-sheet-title").textContent = t("notes");
-      document.getElementById("close-notes-btn").textContent = t("close");
       document.getElementById("theme-title").textContent = t("theme");
-      document.getElementById("close-theme-btn").textContent = t("close");
     }
 
     function changeFontSize(delta) {
@@ -229,7 +190,7 @@
 
     async function setLanguage(newLang) {
       state.lang = newLang; localStorage.setItem("bible.lang", newLang);
-      updateLabels(); clearSelectionAndClose();
+      updateLabels();
       
       document.getElementById("lang-row").innerHTML = Object.entries(LANGUAGES).map(([k, v]) => 
         `<button class="chip ${k === state.lang ? "active" : ""}" onclick="setLanguage('${k}')">${v.label}</button>`
@@ -267,59 +228,13 @@
       
       document.getElementById("reader").innerHTML = html;
       localStorage.setItem("bible.last", JSON.stringify({ b: state.bookIndex, c: state.chapterNumber }));
-      clearSelectionAndClose();
     }
 
-    document.getElementById("reader").addEventListener("click", e => {
-      const el = e.target.closest(".verse");
-      if (el) toggleVerse(parseInt(el.dataset.num), el.dataset.text, el);
-    });
 
-    function toggleVerse(num, text, el) {
-      if (state.selectedVerses.has(num)) {
-        state.selectedVerses.delete(num);
-        el.classList.remove("selected");
-      } else {
-        state.selectedVerses.set(num, text);
-        el.classList.add("selected");
-      }
-      
-      if (state.selectedVerses.size > 0) {
-        updateVerseSheet();
-      } else {
-        document.getElementById("verse-sheet").classList.remove("open");
-      }
+
     }
 
-    function clearSelectionAndClose() {
-      state.selectedVerses.clear();
-      document.querySelectorAll('.verse.selected').forEach(el => el.classList.remove('selected'));
-      document.getElementById("verse-sheet").classList.remove("open");
-    }
 
-    function updateVerseSheet() {
-      const bookName = state.currentBible.books[state.bookIndex].name;
-      const nums = Array.from(state.selectedVerses.keys()).sort((a,b) => a - b);
-      
-      // Combined text WITHOUT verse number tags — clean for Gemini
-      const combinedTextClean = nums.map(n => state.selectedVerses.get(n)).join(" ");
-      // Display text WITH verse numbers — shown in the sheet UI
-      const combinedTextDisplay = nums.map(n => `[${n}] ${state.selectedVerses.get(n)}`).join(" ");
-
-      const displayRef = nums.length > 1 ? `${nums[0]}-${nums[nums.length-1]}` : nums[0];
-      state.selectedRefText = `${bookName} ${state.chapterNumber}:${displayRef}`;
-      // Store clean text for sending to bot
-      state.selectedCleanText = combinedTextClean;
-      // Store verse nums string for explain
-      state.selectedVerseNums = nums.join(",");
-
-      document.getElementById("verse-sheet-title").textContent = state.selectedRefText;
-      document.getElementById("verse-sheet-count").textContent = t("selected") + nums.length;
-      document.getElementById("verse-sheet-text").textContent = combinedTextDisplay;
-      
-      document.getElementById("note-input").value = "";
-      document.getElementById("verse-sheet").classList.add("open");
-    }
 
     function renderSelector() {
       document.getElementById("book-list").innerHTML = state.currentBible.books.map((b, i) => 
@@ -353,49 +268,10 @@
     document.getElementById("prev-btn").onclick = () => { if (state.chapterNumber > 1) changeChap(state.bookIndex, state.chapterNumber - 1); else if (state.bookIndex > 0) changeChap(state.bookIndex - 1, state.currentBible.books[state.bookIndex - 1].chapters.length); };
     document.getElementById("next-btn").onclick = () => { if (state.chapterNumber < state.currentBible.books[state.bookIndex].chapters.length) changeChap(state.bookIndex, state.chapterNumber + 1); else if (state.bookIndex < state.currentBible.books.length - 1) changeChap(state.bookIndex + 1, 1); };
 
-    document.getElementById("copy-btn").onclick = () => { 
-      const txt = `${state.selectedRefText}\n${document.getElementById("verse-sheet-text").textContent}`;
-      navigator.clipboard.writeText(txt).then(() => { showToast(t("copied")); clearSelectionAndClose(); }); 
-    };
     
-    // FIX: now sends verse text along with reference so bot explains the CORRECT verse
-    document.getElementById("explain-btn").onclick = () => { 
-      if (tg) {
-        const bookName = state.currentBible.books[state.bookIndex].name;
-        // Format: explain:BookName:Chapter:verseNums:verseText
-        const payload = `explain:${bookName}:${state.chapterNumber}:${state.selectedVerseNums}:${state.selectedCleanText}`;
-        tg.sendData(payload);
-      }
-      clearSelectionAndClose(); 
-    };
     
-    document.getElementById("pray-btn").onclick = () => { 
-      if (tg) tg.sendData(`pray:${state.selectedRefText} — ${state.selectedCleanText}`); 
-      clearSelectionAndClose(); 
-    };
+
     
-    document.getElementById("prayers-btn").onclick = () => { if(tg) tg.sendData(`action:open_prayers`); };
-
-    document.getElementById("save-note-btn").onclick = () => {
-      const note = document.getElementById("note-input").value.trim(); if (!note) return;
-      const notes = JSON.parse(localStorage.getItem("bible.notes") || "[]");
-      notes.unshift({ id: Date.now(), ref: state.selectedRefText, txt: note });
-      localStorage.setItem("bible.notes", JSON.stringify(notes)); clearSelectionAndClose(); showToast(t("save") + " ✓");
-    };
-
-    document.getElementById("notes-btn").onclick = () => {
-      const notes = JSON.parse(localStorage.getItem("bible.notes") || "[]");
-      document.getElementById("notes-list").innerHTML = notes.length ? notes.map(n => `
-        <div style="padding:12px; background:var(--bg); border:1px solid var(--border); border-radius:12px;">
-          <strong style="display:block; margin-bottom:6px; color:var(--accent);">${n.ref}</strong>
-          <p style="margin:0 0 10px; font-size:14px;">${n.txt}</p>
-          <button class="nav-btn" style="padding:6px 12px; border:1px solid var(--border);" onclick="delNote(${n.id})">${t("del")}</button>
-        </div>`).join("") : `<div style="color:var(--muted); text-align:center; padding:20px;">${t("noNotes")}</div>`;
-      openSheet("notes-sheet");
-    };
-
-    window.delNote = (id) => { const notes = JSON.parse(localStorage.getItem("bible.notes") || "[]").filter(n => n.id !== id); localStorage.setItem("bible.notes", JSON.stringify(notes)); document.getElementById("notes-btn").click(); };
-
     async function init() {
       document.documentElement.style.setProperty('--font-size', `${state.fontSize}px`);
       try { const last = JSON.parse(localStorage.getItem("bible.last")); if (last) { state.bookIndex = last.b; state.chapterNumber = last.c; state.selectorBookIndex = last.b; } } catch(e){}
