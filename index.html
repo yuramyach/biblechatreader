@@ -194,47 +194,57 @@
     }
 
     async function setLanguage(newLang) {
-      state.lang = newLang; localStorage.setItem("bible.lang", newLang);
+      state.lang = newLang;
+      localStorage.setItem("bible.lang", newLang);
       updateLabels();
 
       document.getElementById("lang-row").innerHTML = Object.entries(LANGUAGES).map(([k, v]) =>
         `<button class="chip ${k === state.lang ? "active" : ""}" onclick="setLanguage('${k}')">${v.label}</button>`
       ).join("");
 
-      document.getElementById("reader").style.opacity = 0;
-      document.getElementById("reader").innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)">⏳ Загрузка...</div>`;
-
-      try {
-        if (!cache.has(newLang)) {
-          const res = await fetch(LANGUAGES[newLang].file);
-          if (!res.ok) throw new Error("HTTP " + res.status);
-          const data = await res.json();
-          // Normalize: trim whitespace from verse text
-          data.books.forEach(b => b.chapters.forEach(ch =>
-            ch.verses.forEach(v => v.text = v.text.trim())
-          ));
-          cache.set(newLang, data);
-        }
+      if (cache.has(newLang)) {
         state.currentBible = cache.get(newLang);
         state.bookIndex = Math.min(state.bookIndex, state.currentBible.books.length - 1);
         state.chapterNumber = Math.min(state.chapterNumber, state.currentBible.books[state.bookIndex].chapters.length);
         state.selectorBookIndex = state.bookIndex;
-
         renderReader();
         if (document.getElementById("selector-overlay").classList.contains("open")) renderSelector();
-        setTimeout(() => document.getElementById("reader").style.opacity = 1, 150);
+        return;
+      }
+
+      document.getElementById("reader").innerHTML = '<div style="text-align:center;padding:60px;color:var(--muted)">⏳ Загрузка Библии...</div>';
+
+      try {
+        const res = await fetch(LANGUAGES[newLang].file);
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+        data.books.forEach(b => b.chapters.forEach(ch =>
+          ch.verses.forEach(v => { v.text = (v.text || "").trim(); })
+        ));
+        cache.set(newLang, data);
+        state.currentBible = data;
+        state.bookIndex = Math.min(state.bookIndex, data.books.length - 1);
+        state.chapterNumber = Math.min(state.chapterNumber, data.books[state.bookIndex].chapters.length);
+        state.selectorBookIndex = state.bookIndex;
+        renderReader();
+        if (document.getElementById("selector-overlay").classList.contains("open")) renderSelector();
       } catch (e) {
         console.error("Load error:", e);
-        document.getElementById("reader").style.opacity = 1;
-        document.getElementById("reader").innerHTML = `<div style="text-align:center;padding:40px;color:red;">
-          <b>Ошибка загрузки</b><br><br>
-          Убедись что файл <code>data/${LANGUAGES[newLang].file.split('/')[1]}</code> загружен на GitHub.<br><br>
-          <button onclick="setLanguage('${newLang}')" style="padding:10px 20px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-size:15px;cursor:pointer">🔄 Повторить</button>
-        </div>`;
+        const fname = LANGUAGES[newLang].file.split("/").pop();
+        document.getElementById("reader").innerHTML = `
+          <div style="text-align:center;padding:40px;color:red;">
+            <b>Ошибка загрузки</b><br><br>
+            Файл <code>${fname}</code> не найден в папке <code>data/</code>.<br><br>
+            <button onclick="setLanguage('${newLang}')"
+              style="padding:10px 20px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-size:15px;cursor:pointer">
+              🔄 Повторить
+            </button>
+          </div>`;
       }
     }
 
     function renderReader() {
+      if (!state.currentBible) return;
       const bookName = state.currentBible.books[state.bookIndex].name;
       document.getElementById("open-selector").textContent = `${bookName} ${state.chapterNumber} ▾`;
       
