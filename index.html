@@ -18,7 +18,9 @@
     .reader-wrap{display:flex;justify-content:center;padding:20px 24px 140px;}
     .reader{width:100%;max-width:640px;font-family:Georgia,serif;font-size:var(--font-size);line-height:1.65;transition:opacity .3s;}
     .chapter-heading{font-family:sans-serif;font-size:15px;color:var(--muted);text-transform:uppercase;font-weight:bold;margin-bottom:24px;}
-    .verse{display:inline;}
+    .verse{display:inline;cursor:pointer;border-radius:4px;padding:2px 0;transition:background .15s,color .15s;}
+    .verse.selected{background:var(--accent);color:#fff;padding:2px 3px;}
+    .verse.selected .verse-num{color:#fff;opacity:.85;}
     .verse-num{font-size:.6em;color:var(--accent);font-weight:bold;vertical-align:super;margin-right:4px;user-select:none;}
     .bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:25;border-top:1px solid var(--border);background:var(--nav-bg);backdrop-filter:blur(12px);padding:12px 16px calc(12px + env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
     .nav-btn{border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:10px;padding:12px 4px;font-size:13px;font-weight:600;cursor:pointer;text-align:center;}
@@ -41,6 +43,7 @@
     .bottom-sheet{position:fixed;left:0;right:0;bottom:0;z-index:51;background:var(--surface);border-radius:24px 24px 0 0;padding:16px 20px calc(20px + env(safe-area-inset-bottom));transform:translateY(105%);transition:.3s;max-height:85vh;overflow-y:auto;box-shadow:var(--shadow);}
     .bottom-sheet.open{transform:translateY(0);}
     .sheet-handle{width:40px;height:5px;border-radius:3px;background:var(--muted);margin:0 auto 16px;opacity:.5;}
+    #verse-sheet{z-index:60;max-height:60vh;}
     .toast{position:fixed;top:20px;left:50%;transform:translate(-50%,-20px);background:var(--text);color:var(--bg);padding:8px 16px;border-radius:20px;font-size:14px;font-weight:bold;opacity:0;pointer-events:none;transition:.3s;z-index:100;}
     .toast.show{opacity:1;transform:translate(-50%,0);}
     .font-controls{display:flex;gap:8px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:16px;}
@@ -78,6 +81,27 @@
 </section>
 
 <div class="sheet-backdrop" id="sheet-backdrop"></div>
+
+<section class="bottom-sheet" id="verse-sheet">
+  <div class="sheet-handle"></div>
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+    <div>
+      <div style="font-size:17px;font-weight:600;" id="verse-ref"></div>
+      <div style="font-size:13px;color:var(--accent);font-weight:600;margin-top:2px;" id="verse-count"></div>
+    </div>
+    <button class="icon-btn" style="width:28px;height:28px;font-size:12px;" onclick="clearSelection()">✕</button>
+  </div>
+  <div style="max-height:110px;overflow-y:auto;margin-bottom:12px;border-left:3px solid var(--accent);padding-left:10px;">
+    <p style="margin:0;font-family:Georgia,serif;font-size:16px;line-height:1.5;" id="verse-text"></p>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+    <button class="nav-btn" style="border:none;background:var(--bg);" id="copy-verse-btn">📋 Копировать</button>
+    <button class="nav-btn" style="border:none;background:var(--bg);color:var(--accent);" id="save-note-btn">📝 Заметка</button>
+  </div>
+  <textarea id="note-input" placeholder="Напиши заметку к стиху..."
+    style="width:100%;min-height:70px;border:1px solid var(--border);border-radius:12px;padding:10px;background:var(--bg);color:var(--text);font-size:15px;font-family:inherit;display:none;margin-bottom:10px;"></textarea>
+  <button id="save-note-confirm" style="width:100%;display:none;padding:12px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-size:15px;font-weight:600;cursor:pointer;">Сохранить заметку</button>
+</section>
 
 <section class="bottom-sheet" id="notes-sheet">
   <div class="sheet-handle"></div>
@@ -117,6 +141,7 @@
     lang:  localStorage.getItem("bible.lang")  || "ru",
     fontSize: parseInt(localStorage.getItem("bible.fontSize")) || 19,
     bookIndex: 0, chapterNumber: 1, currentBible: null, selectorBookIndex: 0,
+    selectedVerses: new Map(),
   };
 
   const tg = window.Telegram?.WebApp;
@@ -216,11 +241,85 @@
     const chapter = book.chapters[state.chapterNumber - 1];
     let html = `<div class="chapter-heading">${book.name} ${state.chapterNumber}</div>`;
     html += chapter.verses.map(v =>
-      `<span class="verse"><sup class="verse-num">${v.verse}</sup>${escapeHtml(v.text)} </span>`
+      `<span class="verse" data-num="${v.verse}" data-text="${escapeHtml(v.text)}"><sup class="verse-num">${v.verse}</sup>${escapeHtml(v.text)} </span>`
     ).join("");
     document.getElementById("reader").innerHTML = html;
     localStorage.setItem("bible.last", JSON.stringify({ b: state.bookIndex, c: state.chapterNumber }));
   }
+
+  // ── Verse selection ──────────────────────────────────────────────────────────
+  document.getElementById("reader").addEventListener("click", e => {
+    const el = e.target.closest(".verse");
+    if (el) toggleVerse(parseInt(el.dataset.num), el.dataset.text, el);
+  });
+
+  function toggleVerse(num, text, el) {
+    if (state.selectedVerses.has(num)) {
+      state.selectedVerses.delete(num);
+      el.classList.remove("selected");
+    } else {
+      state.selectedVerses.set(num, text);
+      el.classList.add("selected");
+    }
+    if (state.selectedVerses.size > 0) updateVerseSheet();
+    else clearSelection();
+  }
+
+  function clearSelection() {
+    state.selectedVerses.clear();
+    document.querySelectorAll(".verse.selected").forEach(el => el.classList.remove("selected"));
+    closeSheet();
+  }
+
+  function updateVerseSheet() {
+    const book = state.currentBible.books[state.bookIndex].name;
+    const nums = Array.from(state.selectedVerses.keys()).sort((a,b)=>a-b);
+    const refStr = nums.length > 1
+      ? `${book} ${state.chapterNumber}:${nums[0]}-${nums[nums.length-1]}`
+      : `${book} ${state.chapterNumber}:${nums[0]}`;
+    const fullText = nums.map(n => state.selectedVerses.get(n)).join(" ");
+
+    document.getElementById("verse-ref").textContent = refStr;
+    document.getElementById("verse-count").textContent =
+      nums.length > 1 ? `Выбрано стихов: ${nums.length}` : "";
+    document.getElementById("verse-text").textContent = fullText;
+    document.getElementById("note-input").style.display = "none";
+    document.getElementById("save-note-confirm").style.display = "none";
+    document.getElementById("note-input").value = "";
+
+    // Store for copy/save
+    document.getElementById("copy-verse-btn")._ref  = refStr;
+    document.getElementById("copy-verse-btn")._text = fullText;
+    document.getElementById("save-note-btn")._ref   = refStr;
+    document.getElementById("save-note-btn")._text  = fullText;
+
+    openSheet("verse-sheet");
+  }
+
+  document.getElementById("copy-verse-btn").onclick = function() {
+    const txt = `${this._ref}\n${this._text}`;
+    navigator.clipboard.writeText(txt).then(() => { showToast(t("copied")); clearSelection(); });
+  };
+
+  document.getElementById("save-note-btn").onclick = function() {
+    const inp = document.getElementById("note-input");
+    const btn = document.getElementById("save-note-confirm");
+    inp.style.display = inp.style.display === "none" ? "block" : "none";
+    btn.style.display = inp.style.display;
+    if (inp.style.display !== "none") inp.focus();
+  };
+
+  document.getElementById("save-note-confirm").onclick = function() {
+    const note = document.getElementById("note-input").value.trim();
+    if (!note) return;
+    const ref  = document.getElementById("save-note-btn")._ref;
+    const text = document.getElementById("save-note-btn")._text;
+    const notes = JSON.parse(localStorage.getItem("bible.notes") || "[]");
+    notes.unshift({ id: Date.now(), ref, txt: note, verse: text });
+    localStorage.setItem("bible.notes", JSON.stringify(notes));
+    showToast("✅ Заметка сохранена");
+    clearSelection();
+  };
 
   function renderSelector() {
     document.getElementById("book-list").innerHTML = state.currentBible.books.map((b,i) =>
@@ -235,6 +334,7 @@
     document.getElementById("reader").style.opacity = 0;
     setTimeout(() => {
       state.bookIndex = bIdx; state.chapterNumber = cNum;
+      state.selectedVerses.clear();
       document.getElementById("selector-overlay").classList.remove("open");
       renderReader(); window.scrollTo(0,0);
       document.getElementById("reader").style.opacity = 1;
@@ -271,8 +371,9 @@
     document.getElementById("notes-list").innerHTML = notes.length
       ? notes.map(n => `
           <div style="padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:12px;">
-            <strong style="display:block;margin-bottom:6px;color:var(--accent);">${n.ref}</strong>
-            <p style="margin:0 0 10px;font-size:14px;">${n.txt}</p>
+            <strong style="display:block;margin-bottom:4px;color:var(--accent);">${n.ref}</strong>
+            ${n.verse ? `<p style="margin:0 0 8px;font-size:13px;color:var(--muted);font-family:Georgia,serif;border-left:3px solid var(--border);padding-left:8px;">${n.verse}</p>` : ""}
+            <p style="margin:0 0 10px;font-size:15px;">${n.txt}</p>
             <button class="nav-btn" style="padding:6px 12px;" onclick="delNote(${n.id})">${t("del")}</button>
           </div>`).join("")
       : `<div style="color:var(--muted);text-align:center;padding:20px;">${t("noNotes")}</div>`;
