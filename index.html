@@ -138,9 +138,14 @@
 
   <script>
     const THEMES = { light: "Светлая", sepia: "Бумага", dark: "Темная", night: "Ночь" };
-    const LANGUAGES = { ru: { label: "RU", file: "data/ru_synodal.json" }, en: { label: "EN", file: "data/en_akjv.json" }, uk: { label: "UK", file: "data/uk_ogienko.json" }, es: { label: "ES", file: "data/es_rv.json" } };
-    
-    const STRINGS = {
+    const LANGUAGES = {
+      ru: { label: "RU", file: "data/ru_synodal.json" },
+      uk: { label: "UK", file: "data/uk_ogienko.json" },
+      en: { label: "EN", file: "data/en_akjv.json"    },
+      es: { label: "ES", file: "data/es_rv.json"      },
+    };
+
+        const STRINGS = {
       ru: { select: "Выбор книги", prayers: "Молитвы", notes: "Заметки", copy: "Копировать", copied: "Скопировано!", explain: "Пояснить", pray: "Молитва", save: "Сохранить", theme: "Настройки", noNotes: "Нет заметок", del: "Удалить", prev: "◀ Назад", next: "Вперед ▶", selected: "Выбрано стихов: " },
       en: { select: "Select Book", prayers: "Prayers", notes: "Notes", copy: "Copy", copied: "Copied!", explain: "Explain", pray: "Pray", save: "Save", theme: "Settings", noNotes: "No notes", del: "Delete", prev: "◀ Prev", next: "Next ▶", selected: "Verses selected: " },
       uk: { select: "Вибір книги", prayers: "Молитви", notes: "Нотатки", copy: "Копіювати", copied: "Скопійовано!", explain: "Пояснити", pray: "Молитва", save: "Зберегти", theme: "Налаштування", noNotes: "Немає нотаток", del: "Видалити", prev: "◀ Назад", next: "Вперед ▶", selected: "Обрано віршів: " },
@@ -191,17 +196,24 @@
     async function setLanguage(newLang) {
       state.lang = newLang; localStorage.setItem("bible.lang", newLang);
       updateLabels();
-      
-      document.getElementById("lang-row").innerHTML = Object.entries(LANGUAGES).map(([k, v]) => 
+
+      document.getElementById("lang-row").innerHTML = Object.entries(LANGUAGES).map(([k, v]) =>
         `<button class="chip ${k === state.lang ? "active" : ""}" onclick="setLanguage('${k}')">${v.label}</button>`
       ).join("");
 
       document.getElementById("reader").style.opacity = 0;
-      
+      document.getElementById("reader").innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)">⏳ Загрузка...</div>`;
+
       try {
         if (!cache.has(newLang)) {
           const res = await fetch(LANGUAGES[newLang].file);
-          cache.set(newLang, await res.json());
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          const data = await res.json();
+          // Normalize: trim whitespace from verse text
+          data.books.forEach(b => b.chapters.forEach(ch =>
+            ch.verses.forEach(v => v.text = v.text.trim())
+          ));
+          cache.set(newLang, data);
         }
         state.currentBible = cache.get(newLang);
         state.bookIndex = Math.min(state.bookIndex, state.currentBible.books.length - 1);
@@ -209,11 +221,16 @@
         state.selectorBookIndex = state.bookIndex;
 
         renderReader();
-        if(document.getElementById("selector-overlay").classList.contains("open")) renderSelector();
+        if (document.getElementById("selector-overlay").classList.contains("open")) renderSelector();
         setTimeout(() => document.getElementById("reader").style.opacity = 1, 150);
       } catch (e) {
+        console.error("Load error:", e);
         document.getElementById("reader").style.opacity = 1;
-        document.getElementById("reader").innerHTML = `<div style="text-align:center; padding: 40px; color: red;"><b>Ошибка загрузки!</b><br>Файлы не найдены.</div>`;
+        document.getElementById("reader").innerHTML = `<div style="text-align:center;padding:40px;color:red;">
+          <b>Ошибка загрузки</b><br><br>
+          Убедись что файл <code>data/${LANGUAGES[newLang].file.split('/')[1]}</code> загружен на GitHub.<br><br>
+          <button onclick="setLanguage('${newLang}')" style="padding:10px 20px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-size:15px;cursor:pointer">🔄 Повторить</button>
+        </div>`;
       }
     }
 
