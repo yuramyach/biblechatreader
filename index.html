@@ -138,8 +138,9 @@
     </div>
     
     <div class="sheet-actions">
-      <button class="nav-btn" style="border:none; background:var(--bg);" id="copy-btn">📋 <span id="txt-copy">Копия</span></button>
-      <button class="nav-btn" style="border:none; background:var(--bg); color:var(--accent);" id="explain-btn">💡 <span id="txt-explain">Смысл</span></button>
+      <!-- FIX: renamed "Копия" → "Копировать", "Смысл" → "Пояснить" -->
+      <button class="nav-btn" style="border:none; background:var(--bg);" id="copy-btn">📋 <span id="txt-copy">Копировать</span></button>
+      <button class="nav-btn" style="border:none; background:var(--bg); color:var(--accent);" id="explain-btn">💡 <span id="txt-explain">Пояснить</span></button>
       <button class="nav-btn" style="border:none; background:var(--bg); color:var(--accent);" id="pray-btn">🙏 <span id="txt-pray">Молитва</span></button>
     </div>
     
@@ -170,9 +171,9 @@
     const LANGUAGES = { ru: { label: "RU", file: "data/ru_synodal.json" }, en: { label: "EN", file: "data/en_akjv.json" }, uk: { label: "UK", file: "data/uk_ogienko.json" }, es: { label: "ES", file: "data/es_rv.json" } };
     
     const STRINGS = {
-      ru: { select: "Выбор книги", prayers: "Молитвы", notes: "Заметки", copy: "Копия", copied: "Скопировано!", explain: "Смысл", pray: "Молитва", save: "Сохранить", theme: "Настройки", noNotes: "Нет заметок", del: "Удалить", prev: "◀ Назад", next: "Вперед ▶", selected: "Выбрано стихов: " },
+      ru: { select: "Выбор книги", prayers: "Молитвы", notes: "Заметки", copy: "Копировать", copied: "Скопировано!", explain: "Пояснить", pray: "Молитва", save: "Сохранить", theme: "Настройки", noNotes: "Нет заметок", del: "Удалить", prev: "◀ Назад", next: "Вперед ▶", selected: "Выбрано стихов: " },
       en: { select: "Select Book", prayers: "Prayers", notes: "Notes", copy: "Copy", copied: "Copied!", explain: "Explain", pray: "Pray", save: "Save", theme: "Settings", noNotes: "No notes", del: "Delete", prev: "◀ Prev", next: "Next ▶", selected: "Verses selected: " },
-      uk: { select: "Вибір книги", prayers: "Молитви", notes: "Нотатки", copy: "Копія", copied: "Скопійовано!", explain: "Сенс", pray: "Молитва", save: "Зберегти", theme: "Налаштування", noNotes: "Немає нотаток", del: "Видалити", prev: "◀ Назад", next: "Вперед ▶", selected: "Обрано віршів: " },
+      uk: { select: "Вибір книги", prayers: "Молитви", notes: "Нотатки", copy: "Копіювати", copied: "Скопійовано!", explain: "Пояснити", pray: "Молитва", save: "Зберегти", theme: "Налаштування", noNotes: "Немає нотаток", del: "Видалити", prev: "◀ Назад", next: "Вперед ▶", selected: "Обрано віршів: " },
       es: { select: "Seleccionar", prayers: "Oraciones", notes: "Notas", copy: "Copiar", copied: "¡Copiado!", explain: "Explicar", pray: "Orar", save: "Guardar", theme: "Ajustes", noNotes: "Sin notas", del: "Borrar", prev: "◀ Ant", next: "Sig ▶", selected: "Versículos seleccionados: " }
     };
 
@@ -269,7 +270,6 @@
       clearSelectionAndClose();
     }
 
-    // Делегирование событий клика по стихам
     document.getElementById("reader").addEventListener("click", e => {
       const el = e.target.closest(".verse");
       if (el) toggleVerse(parseInt(el.dataset.num), el.dataset.text, el);
@@ -301,13 +301,21 @@
       const bookName = state.currentBible.books[state.bookIndex].name;
       const nums = Array.from(state.selectedVerses.keys()).sort((a,b) => a - b);
       
-      const combinedText = nums.map(n => `[${n}] ${state.selectedVerses.get(n)}`).join(" ");
+      // Combined text WITHOUT verse number tags — clean for Gemini
+      const combinedTextClean = nums.map(n => state.selectedVerses.get(n)).join(" ");
+      // Display text WITH verse numbers — shown in the sheet UI
+      const combinedTextDisplay = nums.map(n => `[${n}] ${state.selectedVerses.get(n)}`).join(" ");
+
       const displayRef = nums.length > 1 ? `${nums[0]}-${nums[nums.length-1]}` : nums[0];
       state.selectedRefText = `${bookName} ${state.chapterNumber}:${displayRef}`;
+      // Store clean text for sending to bot
+      state.selectedCleanText = combinedTextClean;
+      // Store verse nums string for explain
+      state.selectedVerseNums = nums.join(",");
 
       document.getElementById("verse-sheet-title").textContent = state.selectedRefText;
       document.getElementById("verse-sheet-count").textContent = t("selected") + nums.length;
-      document.getElementById("verse-sheet-text").textContent = combinedText;
+      document.getElementById("verse-sheet-text").textContent = combinedTextDisplay;
       
       document.getElementById("note-input").value = "";
       document.getElementById("verse-sheet").classList.add("open");
@@ -350,13 +358,19 @@
       navigator.clipboard.writeText(txt).then(() => { showToast(t("copied")); clearSelectionAndClose(); }); 
     };
     
+    // FIX: now sends verse text along with reference so bot explains the CORRECT verse
     document.getElementById("explain-btn").onclick = () => { 
-      if(tg) tg.sendData(`explain:${state.currentBible.books[state.bookIndex].name}:${state.chapterNumber}:${Array.from(state.selectedVerses.keys()).join(",")}`); 
+      if (tg) {
+        const bookName = state.currentBible.books[state.bookIndex].name;
+        // Format: explain:BookName:Chapter:verseNums:verseText
+        const payload = `explain:${bookName}:${state.chapterNumber}:${state.selectedVerseNums}:${state.selectedCleanText}`;
+        tg.sendData(payload);
+      }
       clearSelectionAndClose(); 
     };
     
     document.getElementById("pray-btn").onclick = () => { 
-      if(tg) tg.sendData(`pray:${document.getElementById("verse-sheet-text").textContent}`); 
+      if (tg) tg.sendData(`pray:${state.selectedRefText} — ${state.selectedCleanText}`); 
       clearSelectionAndClose(); 
     };
     
