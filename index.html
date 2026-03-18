@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
@@ -167,12 +167,12 @@
 
   <script>
     const THEMES = { light: "Светлая", sepia: "Бумага", dark: "Темная", night: "Ночь" };
-
-    const LANGUAGES = {
-      ru: { label: "RU", file: "data/ru_synodal.json" },
-      en: { label: "EN", file: "data/en_akjv.json" },
-      uk: { label: "UK", file: "data/uk_ogienko.json" },
-      es: { label: "ES", file: "data/es_rv.json" }
+    
+    const LANGUAGES = { 
+      ru: { label: "RU", file: "data/ru_synodal.json" }, 
+      en: { label: "EN", file: "data/en_akjv.json" }, 
+      uk: { label: "UK", file: "data/uk_ogienko.json" }, 
+      es: { label: "ES", file: "data/es_rv.json" } 
     };
 
     const STRINGS = {
@@ -181,6 +181,43 @@
       uk: { select: "Вибір книги", prayers: "Молитви", notes: "Нотатки", copy: "Копія", copied: "Скопійовано!", explain: "Пояснення", pray: "Молитва", save: "Зберегти", theme: "Налаштування", noNotes: "Немає нотаток", del: "Видалити", prev: "Назад", next: "Вперед", selected: "Обрано віршів: ", close: "Закрити" },
       es: { select: "Seleccionar", prayers: "Oraciones", notes: "Notas", copy: "Copiar", copied: "¡Copiado!", explain: "Explicar", pray: "Orar", save: "Guardar", theme: "Ajustes", noNotes: "Sin notas", del: "Borrar", prev: "Ant", next: "Sig", selected: "Versículos seleccionados: ", close: "Cerrar" }
     };
+
+    // --- МАГИЧЕСКИЕ СЛОВАРИ ПЕРЕВОДА ---
+    const RU_MAP = {
+        "genesis": "Бытие", "exodus": "Исход", "leviticus": "Левит", "numbers": "Числа", "deuteronomy": "Второзаконие",
+        "joshua": "Иисус Навин", "judges": "Судьи", "ruth": "Руфь", "1 samuel": "1 Царств", "2 samuel": "2 Царств",
+        "1 kings": "3 Царств", "2 kings": "4 Царств", "1 chronicles": "1 Паралипоменон", "2 chronicles": "2 Паралипоменон",
+        "ezra": "Ездра", "nehemiah": "Неемия", "esther": "Есфирь", "job": "Иов", "psalms": "Псалтирь", "psalm": "Псалтирь",
+        "proverbs": "Притчи", "ecclesiastes": "Екклесиаст", "song of solomon": "Песня песней", "song of songs": "Песня песней",
+        "isaiah": "Исайя", "jeremiah": "Иеремия", "lamentations": "Плач Иеремии", "ezekiel": "Иезекиль", "daniel": "Даниил",
+        "hosea": "Осия", "joel": "Иоиль", "amos": "Амос", "obadiah": "Авдий", "jonah": "Иона", "micah": "Михей",
+        "nahum": "Наум", "habakkuk": "Аввакум", "zephaniah": "Софония", "haggai": "Аггей", "zechariah": "Захария", "malachi": "Малахия",
+        "matthew": "Матфея", "mark": "Марка", "luke": "Луки", "john": "Иоанна", "acts": "Деяния", "romans": "Римлянам",
+        "1 corinthians": "1 Коринфянам", "2 corinthians": "2 Коринфянам", "galatians": "Галатам", "ephesians": "Ефесянам",
+        "philippians": "Филиппийцам", "colossians": "Колоссянам", "1 thessalonians": "1 Фессалоникийцам", "2 thessalonians": "2 Фессалоникийцам",
+        "1 timothy": "1 Тимофею", "2 timothy": "2 Тимофею", "titus": "Титу", "philemon": "Филимону", "hebrews": "Евреям",
+        "james": "Иакова", "1 peter": "1 Петра", "2 peter": "2 Петра", "1 john": "1 Иоанна", "2 john": "2 Иоанна",
+        "3 john": "3 Иоанна", "jude": "Иуды", "revelation": "Откровение"
+    };
+
+    const UK_MAP = {
+        "genesis": "Буття", "exodus": "Вихід", "leviticus": "Левит", "numbers": "Числа", "deuteronomy": "Повторення Закону",
+        "joshua": "Ісус Навин", "judges": "Судді", "ruth": "Рут", "1 samuel": "1 Самуїла", "2 samuel": "2 Самуїла",
+        "1 kings": "1 Царів", "2 kings": "2 Царів", "1 chronicles": "1 Хронік", "2 chronicles": "2 Хронік",
+        "ezra": "Ездра", "nehemiah": "Неємія", "esther": "Естер", "job": "Йов", "psalms": "Псалми", "psalm": "Псалми",
+        "proverbs": "Приповісті", "ecclesiastes": "Екклезіяст", "song of solomon": "Пісня пісень", "song of songs": "Пісня пісень",
+        "isaiah": "Ісая", "jeremiah": "Єремія", "lamentations": "Плач Єремії", "ezekiel": "Єзекіїль", "daniel": "Даниїл",
+        "hosea": "Осія", "joel": "Йоїл", "amos": "Амос", "obadiah": "Овадія", "jonah": "Йона", "micah": "Михей",
+        "nahum": "Наум", "habakkuk": "Авакум", "zephaniah": "Софонія", "haggai": "Огій", "zechariah": "Захарія", "malachi": "Малахія",
+        "matthew": "Матвія", "mark": "Марка", "luke": "Луки", "john": "Івана", "acts": "Дії", "romans": "Римлян",
+        "1 corinthians": "1 Коринтян", "2 corinthians": "2 Коринтян", "galatians": "Галатів", "ephesians": "Ефесян",
+        "philippians": "Филип'янам", "colossians": "Колосян", "1 thessalonians": "1 Солунян", "2 thessalonians": "2 Солунян",
+        "1 timothy": "1 Тимофія", "2 timothy": "2 Тимофія", "titus": "Тита", "philemon": "Филимону", "hebrews": "Євреїв",
+        "james": "Якова", "1 peter": "1 Петра", "2 peter": "2 Петра", "1 john": "1 Івана", "2 john": "2 Івана",
+        "3 john": "3 Івана", "jude": "Юди", "revelation": "Об'явлення"
+    };
+
+    const CANONICAL_BOOKS = Object.keys(RU_MAP);
 
     const state = {
       theme: localStorage.getItem("bible.theme") || "sepia",
@@ -233,10 +270,7 @@
     }
 
     async function setLanguage(newLang) {
-      // Защита от старых кэшированных языков (например, удаленного венгерского)
-      if (!LANGUAGES[newLang]) {
-          newLang = "ru";
-      }
+      if (!LANGUAGES[newLang]) newLang = "ru"; 
 
       state.lang = newLang; localStorage.setItem("bible.lang", newLang);
       updateLabels(); clearSelectionAndClose();
@@ -246,17 +280,42 @@
       ).join("");
 
       document.getElementById("reader").style.opacity = 0;
-
       const fileUrl = LANGUAGES[newLang].file;
 
       try {
         if (!cache.has(newLang)) {
           const res = await fetch(fileUrl);
-          if (!res.ok) {
-             throw new Error(`Файл ${fileUrl} не найден на сервере (Код: ${res.status})`);
+          if (!res.ok) throw new Error(`Файл ${fileUrl} не найден`);
+          
+          let data = await res.json();
+
+          // --- МАГИЯ ОЧИСТКИ ПРЯМО В БРАУЗЕРЕ ---
+          let cleanBooks = [];
+          
+          if (newLang === 'ru' || newLang === 'uk') {
+              data.books.forEach(b => {
+                  const engName = b.name.trim().toLowerCase();
+                  // Если книга есть в каноническом списке
+                  if (CANONICAL_BOOKS.includes(engName)) {
+                      // Переводим название
+                      if (newLang === 'ru' && RU_MAP[engName]) b.name = RU_MAP[engName];
+                      if (newLang === 'uk' && UK_MAP[engName]) b.name = UK_MAP[engName];
+                      
+                      // Добавляем книгу только один раз (автоматически отрезает дублирующийся хвост)
+                      if (!cleanBooks.find(cb => cb.name === b.name)) {
+                          cleanBooks.push(b);
+                      }
+                  }
+              });
+          } else {
+              // Для Английского и Испанского просто берем первые 66 книг и всё
+              cleanBooks = data.books.slice(0, 66);
           }
-          cache.set(newLang, await res.json());
+          
+          data.books = cleanBooks;
+          cache.set(newLang, data);
         }
+
         state.currentBible = cache.get(newLang);
         state.bookIndex = Math.min(state.bookIndex, state.currentBible.books.length - 1);
         state.chapterNumber = Math.min(state.chapterNumber, state.currentBible.books[state.bookIndex].chapters.length);
@@ -266,7 +325,7 @@
         if(document.getElementById("selector-overlay").classList.contains("open")) renderSelector();
         setTimeout(() => document.getElementById("reader").style.opacity = 1, 150);
       } catch (e) {
-        console.error("Ошибка загрузки Библии:", e);
+        console.error("Ошибка загрузки:", e);
         document.getElementById("reader").style.opacity = 1;
         document.getElementById("reader").innerHTML = `<div style="text-align:center; padding: 40px; color: red;"><b>Ошибка загрузки!</b><br>${e.message}</div>`;
       }
@@ -274,7 +333,7 @@
 
     function renderReader() {
       if (!state.currentBible || !state.currentBible.books[state.bookIndex]) return;
-
+      
       const bookName = state.currentBible.books[state.bookIndex].name;
       document.getElementById("open-selector").textContent = `${bookName} ${state.chapterNumber} ▾`;
 
