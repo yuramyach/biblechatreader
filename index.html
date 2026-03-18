@@ -102,10 +102,10 @@
     </main>
 
     <nav class="bottom-nav">
-      <button class="nav-btn" id="prev-btn">◀ Назад</button>
+      <button class="nav-btn" id="prev-btn">Назад</button>
       <button class="nav-btn" id="prayers-btn">Молитвы</button>
       <button class="nav-btn" id="notes-btn">Заметки</button>
-      <button class="nav-btn" id="next-btn">Вперед ▶</button>
+      <button class="nav-btn" id="next-btn">Вперед</button>
     </nav>
   </div>
 
@@ -138,9 +138,9 @@
     </div>
 
     <div class="sheet-actions">
-      <button class="nav-btn" style="border:none; background:var(--bg);" id="copy-btn">📋 <span id="txt-copy">Копия</span></button>
-      <button class="nav-btn" style="border:none; background:var(--bg); color:var(--accent);" id="explain-btn">💡 <span id="txt-explain">Смысл</span></button>
-      <button class="nav-btn" style="border:none; background:var(--bg); color:var(--accent);" id="pray-btn">🙏 <span id="txt-pray">Молитва</span></button>
+      <button class="nav-btn" style="border:none; background:var(--bg);" id="copy-btn"><span id="txt-copy">Копия</span></button>
+      <button class="nav-btn" style="border:none; background:var(--bg); color:var(--accent);" id="explain-btn"><span id="txt-explain">Пояснение</span></button>
+      <button class="nav-btn" style="border:none; background:var(--bg); color:var(--accent);" id="pray-btn"><span id="txt-pray">Молитва</span></button>
     </div>
 
     <textarea class="sheet-textarea" id="note-input" placeholder="Заметка к выбранным стихам..."></textarea>
@@ -176,10 +176,10 @@
     };
 
     const STRINGS = {
-      ru: { select: "Выбор книги", prayers: "Молитвы", notes: "Заметки", copy: "Копия", copied: "Скопировано!", explain: "Смысл", pray: "Молитва", save: "Сохранить", theme: "Настройки", noNotes: "Нет заметок", del: "Удалить", prev: "◀ Назад", next: "Вперед ▶", selected: "Выбрано стихов: ", close: "Закрыть" },
-      en: { select: "Select Book", prayers: "Prayers", notes: "Notes", copy: "Copy", copied: "Copied!", explain: "Explain", pray: "Pray", save: "Save", theme: "Settings", noNotes: "No notes", del: "Delete", prev: "◀ Prev", next: "Next ▶", selected: "Verses selected: ", close: "Close" },
-      uk: { select: "Вибір книги", prayers: "Молитви", notes: "Нотатки", copy: "Копія", copied: "Скопійовано!", explain: "Сенс", pray: "Молитва", save: "Зберегти", theme: "Налаштування", noNotes: "Немає нотаток", del: "Видалити", prev: "◀ Назад", next: "Вперед ▶", selected: "Обрано віршів: ", close: "Закрити" },
-      es: { select: "Seleccionar", prayers: "Oraciones", notes: "Notas", copy: "Copiar", copied: "¡Copiado!", explain: "Explicar", pray: "Orar", save: "Guardar", theme: "Ajustes", noNotes: "Sin notas", del: "Borrar", prev: "◀ Ant", next: "Sig ▶", selected: "Versículos seleccionados: ", close: "Cerrar" }
+      ru: { select: "Выбор книги", prayers: "Молитвы", notes: "Заметки", copy: "Копия", copied: "Скопировано!", explain: "Пояснение", pray: "Молитва", save: "Сохранить", theme: "Настройки", noNotes: "Нет заметок", del: "Удалить", prev: "Назад", next: "Вперед", selected: "Выбрано стихов: ", close: "Закрыть" },
+      en: { select: "Select Book", prayers: "Prayers", notes: "Notes", copy: "Copy", copied: "Copied!", explain: "Explain", pray: "Pray", save: "Save", theme: "Settings", noNotes: "No notes", del: "Delete", prev: "Prev", next: "Next", selected: "Verses selected: ", close: "Close" },
+      uk: { select: "Вибір книги", prayers: "Молитви", notes: "Нотатки", copy: "Копія", copied: "Скопійовано!", explain: "Пояснення", pray: "Молитва", save: "Зберегти", theme: "Налаштування", noNotes: "Немає нотаток", del: "Видалити", prev: "Назад", next: "Вперед", selected: "Обрано віршів: ", close: "Закрити" },
+      es: { select: "Seleccionar", prayers: "Oraciones", notes: "Notas", copy: "Copiar", copied: "¡Copiado!", explain: "Explicar", pray: "Orar", save: "Guardar", theme: "Ajustes", noNotes: "Sin notas", del: "Borrar", prev: "Ant", next: "Sig", selected: "Versículos seleccionados: ", close: "Cerrar" }
     };
 
     const state = {
@@ -233,6 +233,11 @@
     }
 
     async function setLanguage(newLang) {
+      // Защита от старых кэшированных языков (например, удаленного венгерского)
+      if (!LANGUAGES[newLang]) {
+          newLang = "ru"; 
+      }
+
       state.lang = newLang; localStorage.setItem("bible.lang", newLang);
       updateLabels(); clearSelectionAndClose();
 
@@ -242,10 +247,14 @@
 
       document.getElementById("reader").style.opacity = 0;
 
+      const fileUrl = LANGUAGES[newLang].file;
+
       try {
         if (!cache.has(newLang)) {
-          const res = await fetch(LANGUAGES[newLang].file);
-          if (!res.ok) throw new Error("Файл не найден");
+          const res = await fetch(fileUrl);
+          if (!res.ok) {
+             throw new Error(`Файл ${fileUrl} не найден на сервере (Код: ${res.status})`);
+          }
           cache.set(newLang, await res.json());
         }
         state.currentBible = cache.get(newLang);
@@ -257,8 +266,9 @@
         if(document.getElementById("selector-overlay").classList.contains("open")) renderSelector();
         setTimeout(() => document.getElementById("reader").style.opacity = 1, 150);
       } catch (e) {
+        console.error("Ошибка загрузки Библии:", e);
         document.getElementById("reader").style.opacity = 1;
-        document.getElementById("reader").innerHTML = `<div style="text-align:center; padding: 40px; color: red;"><b>Ошибка загрузки!</b><br>Файлы не найдены.</div>`;
+        document.getElementById("reader").innerHTML = `<div style="text-align:center; padding: 40px; color: red;"><b>Ошибка загрузки!</b><br>${e.message}</div>`;
       }
     }
 
