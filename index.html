@@ -168,7 +168,6 @@
   <script>
     const THEMES = { light: "Светлая", sepia: "Бумага", dark: "Темная", night: "Ночь" };
     
-    // Удален венгерский язык отсюда
     const LANGUAGES = { 
       ru: { label: "RU", file: "data/ru_synodal.json" }, 
       en: { label: "EN", file: "data/en_akjv.json" }, 
@@ -246,6 +245,7 @@
       try {
         if (!cache.has(newLang)) {
           const res = await fetch(LANGUAGES[newLang].file);
+          if (!res.ok) throw new Error("Файл не найден");
           cache.set(newLang, await res.json());
         }
         state.currentBible = cache.get(newLang);
@@ -263,6 +263,8 @@
     }
 
     function renderReader() {
+      if (!state.currentBible || !state.currentBible.books[state.bookIndex]) return;
+      
       const bookName = state.currentBible.books[state.bookIndex].name;
       document.getElementById("open-selector").textContent = `${bookName} ${state.chapterNumber} ▾`;
 
