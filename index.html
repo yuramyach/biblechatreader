@@ -7,13 +7,13 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
-      --bg: #ffffff; --text: #1d1d1f; --surface: #f2f2f7; --accent: #a0835d; --border: rgba(0,0,0,0.1); --fs: 19px;
+      --bg: #ffffff; --text: #1d1d1f; --surface: #f2f2f7; --accent: #a0835d; --border: rgba(0,0,0,0.1); --fs: 20px;
     }
     [data-theme="sepia"] { --bg: #f4ecd8; --text: #5b4636; --surface: #e9dec4; --accent: #8e7352; }
     [data-theme="dark"] { --bg: #2c2c2e; --text: #f5f5f7; --surface: #3a3a3c; --accent: #d1b894; --border: rgba(255,255,255,0.1); }
     [data-theme="night"] { --bg: #000000; --text: #e5e5ea; --surface: #1c1c1e; --accent: #d1b894; --border: rgba(255,255,255,0.2); }
 
-    body { margin: 0; background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; transition: 0.3s; line-height: 1.6; user-select: none; -webkit-tap-highlight-color: transparent; }
+    body { margin: 0; background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; transition: 0.3s; line-height: 1.6; user-select: none; }
     
     .header { position: sticky; top: 0; z-index: 100; background: var(--bg); display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; border-bottom: 1px solid var(--border); backdrop-filter: blur(10px); }
     .header-btn { background: var(--surface); border: none; padding: 8px 14px; border-radius: 20px; color: var(--text); font-weight: 600; font-size: 14px; cursor: pointer; }
@@ -23,35 +23,38 @@
     .v-num { font-size: 0.6em; font-weight: bold; color: var(--accent); margin-right: 6px; vertical-align: super; }
     .verse.selected { background: rgba(160, 131, 93, 0.35); }
 
-    /* Панель Оглавления */
+    /* Оглавление */
     .overlay { position: fixed; inset: 0; background: var(--bg); z-index: 200; display: none; flex-direction: column; }
     .overlay.open { display: flex; }
     .overlay-body { display: grid; grid-template-columns: 1fr 1.2fr; flex: 1; overflow: hidden; }
     .scroll-v { overflow-y: auto; padding: 10px; }
     .list-item { width: 100%; text-align: left; padding: 14px; border: none; background: none; color: var(--text); font-size: 15px; border-radius: 8px; }
-    .list-item.active { background: var(--accent); color: #fff; font-weight: bold; }
+    .list-item.active { background: var(--accent); color: #fff; }
 
-    /* Универсальная Панель Aa (Шрифт + Тема + Язык) */
+    /* Панель Aa */
     .sheet { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 300; display: none; align-items: flex-end; }
     .sheet.open { display: flex; }
-    .sheet-box { background: var(--bg); width: 100%; border-radius: 24px 24px 0 0; padding: 20px 20px 40px; animation: slideUp 0.3s ease; box-shadow: 0 -10px 40px rgba(0,0,0,0.2); }
+    .sheet-box { background: var(--bg); width: 100%; border-radius: 24px 24px 0 0; padding: 20px 20px 40px; animation: slideUp 0.3s ease; }
     
-    .section-label { text-align:center; margin-bottom:12px; opacity:0.5; font-size:11px; font-weight: bold; letter-spacing: 1px; }
-    .font-ctrl { display: flex; gap: 10px; margin-bottom: 25px; }
+    .section-label { text-align:center; margin-bottom:12px; opacity:0.5; font-size:11px; font-weight: bold; }
+    .font-ctrl { display: flex; gap: 10px; margin-bottom: 20px; }
     .f-btn { flex: 1; background: var(--surface); border: 1px solid var(--border); padding: 12px; border-radius: 12px; color: var(--text); font-weight: bold; font-size: 18px; }
     
-    .theme-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 25px; }
+    .theme-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
     .t-circle { height: 45px; border-radius: 12px; border: 2px solid transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; }
     .t-circle.active { border-color: var(--accent); }
 
     .lang-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-    .l-btn { background: var(--surface); border: 1px solid var(--border); padding: 10px 0; border-radius: 10px; color: var(--text); font-size: 12px; font-weight: bold; cursor: pointer; }
-    .l-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .l-btn { background: var(--surface); border: 1px solid var(--border); padding: 10px 0; border-radius: 10px; color: var(--text); font-size: 12px; font-weight: bold; }
+    .l-btn.active { background: var(--accent); color: #fff; }
 
-    /* Плавающая панель действий */
-    .action-sheet { position: fixed; bottom: 20px; left: 15px; right: 15px; background: var(--surface); border-radius: 16px; padding: 12px; display: none; justify-content: space-around; box-shadow: 0 10px 30px rgba(0,0,0,0.3); z-index: 150; border: 1px solid var(--border); }
+    /* Навигация глав */
+    .nav-bar { display: flex; justify-content: space-between; margin-top: 40px; padding-bottom: 40px; }
+
+    /* Панель стиха */
+    .action-sheet { position: fixed; bottom: 20px; left: 15px; right: 15px; background: var(--surface); border-radius: 16px; padding: 12px; display: none; justify-content: space-around; box-shadow: 0 10px 30px rgba(0,0,0,0.3); z-index: 150; }
     .action-sheet.open { display: flex; }
-    .act-btn { background: none; border: none; color: var(--text); font-size: 11px; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; }
+    .act-btn { background: none; border: none; color: var(--text); font-size: 11px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
     .act-icon { font-size: 22px; }
 
     @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
@@ -60,15 +63,21 @@
 <body data-theme="sepia">
 
 <div class="header">
-  <button class="header-btn" onclick="openSelector()" id="ref-btn">Выбор книги ▾</button>
+  <button class="header-btn" onclick="openSelector()" id="ref-btn">Бытие 1 ▾</button>
   <button class="header-btn" onclick="openSheet('settings-sheet')">Aa</button>
 </div>
 
-<div class="content" id="reader"></div>
+<div class="content">
+  <div id="reader"></div>
+  <div class="nav-bar">
+    <button class="header-btn" onclick="nav(-1)">← Назад</button>
+    <button class="header-btn" onclick="nav(1)">Вперед →</button>
+  </div>
+</div>
 
 <div class="overlay" id="selector">
   <div style="padding:16px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
-    <b>Оглавление</b> <button class="header-btn" onclick="closeSelector()">✕</button>
+    <b>Библия</b> <button class="header-btn" onclick="closeSelector()">✕</button>
   </div>
   <div class="overlay-body">
     <div class="scroll-v" id="book-list" style="border-right:1px solid var(--border)"></div>
@@ -79,20 +88,15 @@
 <div class="sheet" id="settings-sheet" onclick="closeSheet()">
   <div class="sheet-box" onclick="event.stopPropagation()">
     <div class="section-label">ШРИФТ</div>
-    <div class="font-ctrl">
-      <button class="f-btn" onclick="changeFs(-2)">А-</button>
-      <button class="f-btn" onclick="changeFs(2)">А+</button>
-    </div>
-
+    <div class="font-ctrl"><button class="f-btn" onclick="changeFs(-2)">А-</button><button class="f-btn" onclick="changeFs(2)">А+</button></div>
     <div class="section-label">ТЕМА</div>
     <div class="theme-grid">
-      <div class="t-circle" style="background:#ffffff; color:#000; border:1px solid #ddd;" onclick="setT('light')">Light</div>
-      <div class="t-circle" style="background:#f4ecd8; color:#5b4636;" onclick="setT('sepia')">Paper</div>
+      <div class="t-circle" style="background:#fff;" onclick="setT('light')">White</div>
+      <div class="t-circle" style="background:#f4ecd8;" onclick="setT('sepia')">Paper</div>
       <div class="t-circle" style="background:#2c2c2e; color:#fff;" onclick="setT('dark')">Dark</div>
-      <div class="t-circle" style="background:#000000; color:#fff;" onclick="setT('night')">Night</div>
+      <div class="t-circle" style="background:#000; color:#fff;" onclick="setT('night')">Night</div>
     </div>
-
-    <div class="section-label">ЯЗЫК / LANGUAGE</div>
+    <div class="section-label">ЯЗЫК</div>
     <div class="lang-grid">
       <button class="l-btn" id="l-ru" onclick="changeLang('ru')">RU</button>
       <button class="l-btn" id="l-uk" onclick="changeLang('uk')">UK</button>
@@ -111,36 +115,23 @@
 
 <script>
   const tg = window.Telegram.WebApp;
-  let bible = null;
-  let bIdx = 0, cIdx = 0;
+  let bible = null, bIdx = 0, cIdx = 0;
   let selected = new Map();
   let currentLang = localStorage.getItem('bible-lang') || 'ru';
 
-  const langFiles = {
-    ru: 'data/ru_synodal.json',
-    uk: 'data/uk_ogienko.json',
-    en: 'data/en_akjv.json',
-    es: 'data/es_rv.json'
-  };
-
   async function loadBible() {
-    const file = langFiles[currentLang] || langFiles.ru;
-    const res = await fetch(file + '?v=' + Date.now());
+    const files = { ru:'ru_synodal.json', uk:'uk_ogienko.json', en:'en_akjv.json', es:'es_rv.json' };
+    const res = await fetch('data/' + files[currentLang] + '?v=' + Date.now());
     bible = await res.json();
-    
-    // Подсветка активного языка в меню
-    document.querySelectorAll('.l-btn').forEach(btn => btn.classList.remove('active'));
-    document.getElementById('l-' + currentLang).classList.add('active');
-    
+    document.querySelectorAll('.l-btn').forEach(b => b.classList.toggle('active', b.id === 'l-'+currentLang));
     render();
   }
 
   function render() {
-    if (!bible) return;
     const book = bible.books[bIdx];
     const chapter = book.chapters[cIdx];
     document.getElementById('ref-btn').innerText = `${book.name} ${cIdx + 1} ▾`;
-    let h = `<h2 style="font-family:serif; font-size:28px; margin-bottom:20px;">${book.name} ${cIdx + 1}</h2>`;
+    let h = `<h2 style="font-family:serif; font-size:30px;">${book.name} ${cIdx + 1}</h2>`;
     chapter.verses.forEach(v => {
       h += `<span class="verse" id="v${v.verse}" onclick="sel(${v.verse},'${v.text.replace(/'/g,"")}')"><span class="v-num">${v.verse}</span>${v.text} </span>`;
     });
@@ -148,70 +139,58 @@
     window.scrollTo(0,0);
   }
 
-  function changeLang(l) {
-    currentLang = l;
-    localStorage.setItem('bible-lang', l);
-    loadBible();
-    closeSheet();
-  }
-
   function sel(n, t) {
     const el = document.getElementById('v'+n);
     if(selected.has(n)) { selected.delete(n); el.classList.remove('selected'); }
     else { selected.set(n, t); el.classList.add('selected'); }
-    document.getElementById('action-sheet').style.display = selected.size > 0 ? 'flex' : 'none';
+    document.getElementById('action-sheet').style.display = selected.size ? 'flex' : 'none';
     if(selected.size > 0) document.getElementById('action-sheet').classList.add('open');
   }
 
   function copyV() {
+    const bookName = bible.books[bIdx].name;
+    const nums = Array.from(selected.keys()).sort((a,b)=>a-b);
     const text = Array.from(selected.values()).join(' ');
-    navigator.clipboard.writeText(text);
+    const ref = nums.length > 1 ? `${nums[0]}-${nums[nums.length-1]}` : nums[0];
+    const finalString = `${bookName} ${cIdx+1}:${ref}\n"${text}"`;
+    
+    const el = document.createElement('textarea');
+    el.value = finalString; document.body.appendChild(el);
+    el.select(); document.execCommand('copy'); document.body.removeChild(el);
+    
     tg.HapticFeedback.notificationOccurred('success');
     clearSel();
   }
 
-  function openNote() {
-    const note = prompt("Заметка:");
-    if(note) localStorage.setItem(`note_${currentLang}_${bIdx}_${cIdx}`, note);
-    clearSel();
+  function nav(d) {
+    cIdx += d;
+    if(cIdx < 0) { bIdx = Math.max(0, bIdx-1); cIdx = bible.books[bIdx].chapters.length-1; }
+    else if(cIdx >= bible.books[bIdx].chapters.length) { bIdx = Math.min(bible.books.length-1, bIdx+1); cIdx = 0; }
+    render();
   }
 
-  function sendToBot(cmd) {
-    const text = Array.from(selected.values()).join(' ');
-    const ref = `${bible.books[bIdx].name} ${cIdx+1}`;
-    tg.sendData(`${cmd}:${ref}:${text}`);
-    clearSel();
-  }
-
+  function changeLang(l) { currentLang = l; localStorage.setItem('bible-lang', l); loadBible(); closeSheet(); }
   function openSelector() {
     document.getElementById('selector').classList.add('open');
     const list = document.getElementById('book-list');
     list.innerHTML = bible.books.map((b, i) => `<button class="list-item ${i===bIdx?'active':''}" onclick="loadChaps(${i})">${b.name}</button>`).join('');
     loadChaps(bIdx);
   }
-
   function loadChaps(i) {
     const grid = document.getElementById('chap-grid');
     grid.innerHTML = bible.books[i].chapters.map((_, c) => `<button class="header-btn" style="padding:15px 0" onclick="bIdx=${i}; cIdx=${c}; render(); closeSelector();">${c+1}</button>`).join('');
   }
-
   function closeSelector() { document.getElementById('selector').classList.remove('open'); }
   function openSheet(id) { document.getElementById(id).classList.add('open'); }
   function closeSheet() { document.querySelectorAll('.sheet').forEach(s => s.classList.remove('open')); }
   function clearSel() { selected.clear(); document.querySelectorAll('.verse').forEach(v => v.classList.remove('selected')); document.getElementById('action-sheet').style.display = 'none'; }
-  
-  function setT(t) { 
-    document.body.setAttribute('data-theme', t); 
-    const colors = { light: "#ffffff", sepia: "#f4ecd8", dark: "#2c2c2e", night: "#000000" };
-    tg.setHeaderColor(colors[t]);
-    tg.setBackgroundColor(colors[t]);
-    closeSheet(); 
-  }
-
+  function setT(t) { document.body.setAttribute('data-theme', t); closeSheet(); }
   function changeFs(d) {
     let s = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--fs'));
     document.documentElement.style.setProperty('--fs', Math.max(14, Math.min(32, s+d)) + 'px');
   }
+  function openNote() { const n = prompt("Заметка:"); if(n) localStorage.setItem(`n_${bIdx}_${cIdx}`, n); clearSel(); }
+  function sendToBot(c) { const t = Array.from(selected.values()).join(' '); tg.sendData(`${c}:${t}`); clearSel(); }
 
   tg.ready(); tg.expand(); loadBible();
 </script>
