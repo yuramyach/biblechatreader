@@ -125,10 +125,20 @@
   const THEMES = { light:"Светлая", sepia:"Бумага", dark:"Темная", night:"Ночь" };
   const LANGUAGES = {
     ru: { label:"RU", file:"data/ru_synodal.json" },
-    en: { label:"EN", file:"data/en_akjv.json"    },
     uk: { label:"UK", file:"data/uk_ogienko.json" },
+    en: { label:"EN", file:"data/en_akjv.json"    },
     es: { label:"ES", file:"data/es_rv.json"      },
+    hu: { label:"HU", file:"data/hu_karoli.json"  },
   };
+  // Native book names per language — applied after JSON loads
+  const BOOK_NAMES = {
+    ru: ["Бытие","Исход","Левит","Числа","Второзаконие","Иисус Навин","Судьи","Руфь","1 Царств","2 Царств","3 Царств","4 Царств","1 Паралипоменон","2 Паралипоменон","Ездра","Неемия","Есфирь","Иов","Псалтирь","Притчи","Екклесиаст","Песня песней","Исайя","Иеремия","Плач Иеремии","Иезекиль","Даниил","Осия","Иоиль","Амос","Авдий","Иона","Михей","Наум","Аввакум","Софония","Аггей","Захария","Малахия","Матфея","Марка","Луки","Иоанна","Деяния","Римлянам","1 Коринфянам","2 Коринфянам","Галатам","Ефесянам","Филиппийцам","Колоссянам","1 Фессалоникийцам","2 Фессалоникийцам","1 Тимофею","2 Тимофею","Титу","Филимону","Евреям","Иакова","1 Петра","2 Петра","1 Иоанна","2 Иоанна","3 Иоанна","Иуды","Откровение"],
+    uk: ["Буття","Вихід","Левит","Числа","Повторення Закону","Ісус Навин","Судді","Рут","1 Самуїла","2 Самуїла","1 Царів","2 Царів","1 Хронік","2 Хронік","Ездра","Неємія","Естер","Йов","Псалми","Приповісті","Екклезіяст","Пісня пісень","Ісая","Єремія","Плач Єремії","Єзекіїль","Даниїл","Осія","Йоїл","Амос","Овадія","Йона","Михей","Наум","Авакум","Софонія","Огій","Захарія","Малахія","Матвія","Марка","Луки","Івана","Дії","Римлян","1 Коринтян","2 Коринтян","Галатів","Ефесян","Филип'янам","Колосян","1 Солунян","2 Солунян","1 Тимофія","2 Тимофія","Тита","Филимону","Євреїв","Якова","1 Петра","2 Петра","1 Івана","2 Івана","3 Івана","Юди","Об'явлення"],
+    en: ["Genesis","Exodus","Leviticus","Numbers","Deuteronomy","Joshua","Judges","Ruth","1 Samuel","2 Samuel","1 Kings","2 Kings","1 Chronicles","2 Chronicles","Ezra","Nehemiah","Esther","Job","Psalms","Proverbs","Ecclesiastes","Song of Solomon","Isaiah","Jeremiah","Lamentations","Ezekiel","Daniel","Hosea","Joel","Amos","Obadiah","Jonah","Micah","Nahum","Habakkuk","Zephaniah","Haggai","Zechariah","Malachi","Matthew","Mark","Luke","John","Acts","Romans","1 Corinthians","2 Corinthians","Galatians","Ephesians","Philippians","Colossians","1 Thessalonians","2 Thessalonians","1 Timothy","2 Timothy","Titus","Philemon","Hebrews","James","1 Peter","2 Peter","1 John","2 John","3 John","Jude","Revelation"],
+    es: ["Génesis","Éxodo","Levítico","Números","Deuteronomio","Josué","Jueces","Rut","1 Samuel","2 Samuel","1 Reyes","2 Reyes","1 Crónicas","2 Crónicas","Esdras","Nehemías","Ester","Job","Salmos","Proverbios","Eclesiastés","Cantares","Isaías","Jeremías","Lamentaciones","Ezequiel","Daniel","Oseas","Joel","Amós","Abdías","Jonás","Miqueas","Nahúm","Habacuc","Sofonías","Hageo","Zacarías","Malaquías","Mateo","Marcos","Lucas","Juan","Hechos","Romanos","1 Corintios","2 Corintios","Gálatas","Efesios","Filipenses","Colosenses","1 Tesalonicenses","2 Tesalonicenses","1 Timoteo","2 Timoteo","Tito","Filemón","Hebreos","Santiago","1 Pedro","2 Pedro","1 Juan","2 Juan","3 Juan","Judas","Apocalipsis"],
+    hu: ["Mózes I","Mózes II","Mózes III","Mózes IV","Mózes V","Józsué","Bírák","Ruth","1 Sámuel","2 Sámuel","1 Királyok","2 Királyok","1 Krónikák","2 Krónikák","Ezsdrás","Nehémiás","Eszter","Jób","Zsoltárok","Példabeszédek","Prédikátor","Énekek éneke","Ézsaiás","Jeremiás","Jeremiás siralmai","Ezékiel","Dániel","Hóseás","Jóel","Ámós","Abdiás","Jónás","Mikeás","Náhum","Habakuk","Zofóniás","Haggeus","Zakariás","Malakiás","Máté","Márk","Lukács","János","Apostolok cselekedetei","Róma","1 Korinthus","2 Korinthus","Galata","Efézus","Filippi","Kolosszé","1 Thessalonika","2 Thessalonika","1 Timóteus","2 Timóteus","Titusz","Filemon","Zsidók","Jakab","1 Péter","2 Péter","1 János","2 János","3 János","Júdás","Jelenések"],
+  };
+
   const STRINGS = {
     ru: { select:"Выбор книги",  notes:"Заметки",  copied:"Скопировано!", theme:"Настройки",    noNotes:"Нет заметок",     del:"Удалить",  prev:"◀ Назад", next:"Вперед ▶", close:"Закрыть"  },
     en: { select:"Select Book",  notes:"Notes",    copied:"Copied!",       theme:"Settings",     noNotes:"No notes",        del:"Delete",   prev:"◀ Prev",  next:"Next ▶",   close:"Close"    },
@@ -210,6 +220,9 @@
       data.books.forEach(b => b.chapters.forEach(ch =>
         ch.verses.forEach(v => { v.text = (v.text || "").trim(); })
       ));
+      // Apply native book names from BOOK_NAMES dictionary
+      const names = BOOK_NAMES[newLang];
+      if (names) data.books.forEach((b, i) => { if (names[i]) b.name = names[i]; });
       cache.set(newLang, data);
       state.currentBible = data;
       state.bookIndex = Math.min(state.bookIndex, data.books.length - 1);
