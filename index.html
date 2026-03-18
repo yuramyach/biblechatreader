@@ -182,42 +182,70 @@
       es: { select: "Seleccionar", prayers: "Oraciones", notes: "Notas", copy: "Copiar", copied: "¡Copiado!", explain: "Explicar", pray: "Orar", save: "Guardar", theme: "Ajustes", noNotes: "Sin notas", del: "Borrar", prev: "Ant", next: "Sig", selected: "Versículos seleccionados: ", close: "Cerrar" }
     };
 
-    // --- МАГИЧЕСКИЕ СЛОВАРИ ПЕРЕВОДА ---
-    const RU_MAP = {
-        "genesis": "Бытие", "exodus": "Исход", "leviticus": "Левит", "numbers": "Числа", "deuteronomy": "Второзаконие",
-        "joshua": "Иисус Навин", "judges": "Судьи", "ruth": "Руфь", "1 samuel": "1 Царств", "2 samuel": "2 Царств",
-        "1 kings": "3 Царств", "2 kings": "4 Царств", "1 chronicles": "1 Паралипоменон", "2 chronicles": "2 Паралипоменон",
-        "ezra": "Ездра", "nehemiah": "Неемия", "esther": "Есфирь", "job": "Иов", "psalms": "Псалтирь", "psalm": "Псалтирь",
-        "proverbs": "Притчи", "ecclesiastes": "Екклесиаст", "song of solomon": "Песня песней", "song of songs": "Песня песней",
-        "isaiah": "Исайя", "jeremiah": "Иеремия", "lamentations": "Плач Иеремии", "ezekiel": "Иезекиль", "daniel": "Даниил",
-        "hosea": "Осия", "joel": "Иоиль", "amos": "Амос", "obadiah": "Авдий", "jonah": "Иона", "micah": "Михей",
-        "nahum": "Наум", "habakkuk": "Аввакум", "zephaniah": "Софония", "haggai": "Аггей", "zechariah": "Захария", "malachi": "Малахия",
-        "matthew": "Матфея", "mark": "Марка", "luke": "Луки", "john": "Иоанна", "acts": "Деяния", "romans": "Римлянам",
-        "1 corinthians": "1 Коринфянам", "2 corinthians": "2 Коринфянам", "galatians": "Галатам", "ephesians": "Ефесянам",
-        "philippians": "Филиппийцам", "colossians": "Колоссянам", "1 thessalonians": "1 Фессалоникийцам", "2 thessalonians": "2 Фессалоникийцам",
-        "1 timothy": "1 Тимофею", "2 timothy": "2 Тимофею", "titus": "Титу", "philemon": "Филимону", "hebrews": "Евреям",
-        "james": "Иакова", "1 peter": "1 Петра", "2 peter": "2 Петра", "1 john": "1 Иоанна", "2 john": "2 Иоанна",
-        "3 john": "3 Иоанна", "jude": "Иуды", "revelation": "Откровение"
-    };
+    // --- ПРАВИЛЬНЫЙ ПОРЯДОК КНИГ БИБЛИИ ---
+    const BIBLE_ORDER = [
+        "Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy", "Joshua", "Judges", "Ruth",
+        "1 Samuel", "2 Samuel", "1 Kings", "2 Kings", "1 Chronicles", "2 Chronicles",
+        "Ezra", "Nehemiah", "Esther", "Job", "Psalms", "Proverbs", "Ecclesiastes", "Song of Solomon",
+        "Isaiah", "Jeremiah", "Lamentations", "Ezekiel", "Daniel", "Hosea", "Joel", "Amos",
+        "Obadiah", "Jonah", "Micah", "Nahum", "Habakkuk", "Zephaniah", "Haggai", "Zechariah", "Malachi",
+        "Matthew", "Mark", "Luke", "John", "Acts", "Romans", "1 Corinthians", "2 Corinthians",
+        "Galatians", "Ephesians", "Philippians", "Colossians", "1 Thessalonians", "2 Thessalonians",
+        "1 Timothy", "2 Timothy", "Titus", "Philemon", "Hebrews", "James", "1 Peter", "2 Peter",
+        "1 John", "2 John", "3 John", "Jude", "Revelation"
+    ];
 
-    const UK_MAP = {
-        "genesis": "Буття", "exodus": "Вихід", "leviticus": "Левит", "numbers": "Числа", "deuteronomy": "Повторення Закону",
-        "joshua": "Ісус Навин", "judges": "Судді", "ruth": "Рут", "1 samuel": "1 Самуїла", "2 samuel": "2 Самуїла",
-        "1 kings": "1 Царів", "2 kings": "2 Царів", "1 chronicles": "1 Хронік", "2 chronicles": "2 Хронік",
-        "ezra": "Ездра", "nehemiah": "Неємія", "esther": "Естер", "job": "Йов", "psalms": "Псалми", "psalm": "Псалми",
-        "proverbs": "Приповісті", "ecclesiastes": "Екклезіяст", "song of solomon": "Пісня пісень", "song of songs": "Пісня пісень",
-        "isaiah": "Ісая", "jeremiah": "Єремія", "lamentations": "Плач Єремії", "ezekiel": "Єзекіїль", "daniel": "Даниїл",
-        "hosea": "Осія", "joel": "Йоїл", "amos": "Амос", "obadiah": "Овадія", "jonah": "Йона", "micah": "Михей",
-        "nahum": "Наум", "habakkuk": "Авакум", "zephaniah": "Софонія", "haggai": "Огій", "zechariah": "Захарія", "malachi": "Малахія",
-        "matthew": "Матвія", "mark": "Марка", "luke": "Луки", "john": "Івана", "acts": "Дії", "romans": "Римлян",
-        "1 corinthians": "1 Коринтян", "2 corinthians": "2 Коринтян", "galatians": "Галатів", "ephesians": "Ефесян",
-        "philippians": "Филип'янам", "colossians": "Колосян", "1 thessalonians": "1 Солунян", "2 thessalonians": "2 Солунян",
-        "1 timothy": "1 Тимофія", "2 timothy": "2 Тимофія", "titus": "Тита", "philemon": "Филимону", "hebrews": "Євреїв",
-        "james": "Якова", "1 peter": "1 Петра", "2 peter": "2 Петра", "1 john": "1 Івана", "2 john": "2 Івана",
-        "3 john": "3 Івана", "jude": "Юди", "revelation": "Об'явлення"
+    // --- СЛОВАРИ ДЛЯ ПЕРЕВОДА ---
+    const TRANSLATIONS_MAP = {
+        "ru": {
+            "Genesis": "Бытие", "Exodus": "Исход", "Leviticus": "Левит", "Numbers": "Числа", "Deuteronomy": "Второзаконие",
+            "Joshua": "Иисус Навин", "Judges": "Судьи", "Ruth": "Руфь", "1 Samuel": "1 Царств", "2 Samuel": "2 Царств",
+            "1 Kings": "3 Царств", "2 Kings": "4 Царств", "1 Chronicles": "1 Паралипоменон", "2 Chronicles": "2 Паралипоменон",
+            "Ezra": "Ездра", "Nehemiah": "Неемия", "Esther": "Есфирь", "Job": "Иов", "Psalms": "Псалтирь", 
+            "Proverbs": "Притчи", "Ecclesiastes": "Екклесиаст", "Song of Solomon": "Песня песней",
+            "Isaiah": "Исайя", "Jeremiah": "Иеремия", "Lamentations": "Плач Иеремии", "Ezekiel": "Иезекиль", "Daniel": "Даниил",
+            "Hosea": "Осия", "Joel": "Иоиль", "Amos": "Амос", "Obadiah": "Авдий", "Jonah": "Иона", "Micah": "Михей",
+            "Nahum": "Наум", "Habakkuk": "Аввакум", "Zephaniah": "Софония", "Haggai": "Аггей", "Zechariah": "Захария", "Malachi": "Малахия",
+            "Matthew": "Матфея", "Mark": "Марка", "Luke": "Луки", "John": "Иоанна", "Acts": "Деяния", "Romans": "Римлянам",
+            "1 Corinthians": "1 Коринфянам", "2 Corinthians": "2 Коринфянам", "Galatians": "Галатам", "Ephesians": "Ефесянам",
+            "Philippians": "Филиппийцам", "Colossians": "Колоссянам", "1 Thessalonians": "1 Фессалоникийцам", "2 Thessalonians": "2 Фессалоникийцам",
+            "1 Timothy": "1 Тимофею", "2 Timothy": "2 Тимофею", "Titus": "Титу", "Philemon": "Филимону", "Hebrews": "Евреям",
+            "James": "Иакова", "1 Peter": "1 Петра", "2 Peter": "2 Петра", "1 John": "1 Иоанна", "2 John": "2 Иоанна",
+            "3 John": "3 Иоанна", "Jude": "Иуды", "Revelation": "Откровение"
+        },
+        "uk": {
+            "Genesis": "Буття", "Exodus": "Вихід", "Leviticus": "Левит", "Numbers": "Числа", "Deuteronomy": "Повторення Закону",
+            "Joshua": "Ісус Навин", "Judges": "Судді", "Ruth": "Рут", "1 Samuel": "1 Самуїла", "2 Samuel": "2 Самуїла",
+            "1 Kings": "1 Царів", "2 Kings": "2 Царів", "1 Chronicles": "1 Хронік", "2 Chronicles": "2 Хронік",
+            "Ezra": "Ездра", "Nehemiah": "Неємія", "Esther": "Естер", "Job": "Йов", "Psalms": "Псалми", 
+            "Proverbs": "Приповісті", "Ecclesiastes": "Екклезіяст", "Song of Solomon": "Пісня пісень",
+            "Isaiah": "Ісая", "Jeremiah": "Єремія", "Lamentations": "Плач Єремії", "Ezekiel": "Єзекіїль", "Daniel": "Даниїл",
+            "Hosea": "Осія", "Joel": "Йоїл", "Amos": "Амос", "Obadiah": "Овадія", "Jonah": "Йона", "Micah": "Михей",
+            "Nahum": "Наум", "Habakkuk": "Авакум", "Zephaniah": "Софонія", "Haggai": "Огій", "Zechariah": "Захарія", "Malachi": "Малахія",
+            "Matthew": "Матвія", "Mark": "Марка", "Luke": "Луки", "John": "Івана", "Acts": "Дії", "Romans": "Римлян",
+            "1 Corinthians": "1 Коринтян", "2 Corinthians": "2 Коринтян", "Galatians": "Галатів", "Ephesians": "Ефесян",
+            "Philippians": "Филип'янам", "Colossians": "Колосян", "1 Thessalonians": "1 Солунян", "2 Thessalonians": "2 Солунян",
+            "1 Timothy": "1 Тимофія", "2 Timothy": "2 Тимофія", "Titus": "Тита", "Philemon": "Филимону", "Hebrews": "Євреїв",
+            "James": "Якова", "1 Peter": "1 Петра", "2 Peter": "2 Петра", "1 John": "1 Івана", "2 John": "2 Івана",
+            "3 John": "3 Івана", "Jude": "Юди", "Revelation": "Об'явлення"
+        },
+        "es": {
+            "Genesis": "Génesis", "Exodus": "Éxodo", "Leviticus": "Levítico", "Numbers": "Números", "Deuteronomy": "Deuteronomio",
+            "Joshua": "Josué", "Judges": "Jueces", "Ruth": "Rut", "1 Samuel": "1 Samuel", "2 Samuel": "2 Samuel",
+            "1 Kings": "1 Reyes", "2 Kings": "2 Reyes", "1 Chronicles": "1 Crónicas", "2 Chronicles": "2 Crónicas",
+            "Ezra": "Esdras", "Nehemiah": "Nehemías", "Esther": "Ester", "Job": "Job", "Psalms": "Salmos", 
+            "Proverbs": "Proverbios", "Ecclesiastes": "Eclesiastés", "Song of Solomon": "Cantares",
+            "Isaiah": "Isaías", "Jeremiah": "Jeremías", "Lamentations": "Lamentaciones", "Ezekiel": "Ezequiel", "Daniel": "Daniel",
+            "Hosea": "Oseas", "Joel": "Joel", "Amos": "Amós", "Obadiah": "Abdías", "Jonah": "Jonás", "Micah": "Miqueas",
+            "Nahum": "Nahúm", "Habakkuk": "Habacuc", "Zephaniah": "Sofonías", "Haggai": "Hageo", "Zechariah": "Zacarías", "Malachi": "Malaquías",
+            "Matthew": "Mateo", "Mark": "Marcos", "Luke": "Lucas", "John": "Juan", "Acts": "Hechos", "Romans": "Romanos",
+            "1 Corinthians": "1 Corintios", "2 Corinthians": "2 Corintios", "Galatians": "Gálatas", "Ephesians": "Efesios",
+            "Philippians": "Filipenses", "Colossians": "Colosenses", "1 Thessalonians": "1 Tesalonicenses", "2 Thessalonians": "2 Tesalonicenses",
+            "1 Timothy": "1 Timoteo", "2 Timothy": "2 Timoteo", "Titus": "Tito", "Philemon": "Filemón", "Hebrews": "Hebreos",
+            "James": "Santiago", "1 Peter": "1 Pedro", "2 Peter": "2 Pedro", "1 John": "1 Juan", "2 John": "2 Juan",
+            "3 John": "3 Juan", "Jude": "Judas", "Revelation": "Apocalipsis"
+        }
     };
-
-    const CANONICAL_BOOKS = Object.keys(RU_MAP);
 
     const state = {
       theme: localStorage.getItem("bible.theme") || "sepia",
@@ -280,7 +308,9 @@
       ).join("");
 
       document.getElementById("reader").style.opacity = 0;
-      const fileUrl = LANGUAGES[newLang].file;
+      
+      // АНТИ-КЭШ: Заставляем Телеграм всегда скачивать актуальный файл
+      const fileUrl = LANGUAGES[newLang].file + "?v=" + new Date().getTime();
 
       try {
         if (!cache.has(newLang)) {
@@ -288,37 +318,56 @@
           if (!res.ok) throw new Error(`Файл ${fileUrl} не найден`);
           
           let data = await res.json();
+          let sortedBooks = [];
 
-          // --- МАГИЯ ОЧИСТКИ ПРЯМО В БРАУЗЕРЕ ---
-          let cleanBooks = [];
-          
-          if (newLang === 'ru' || newLang === 'uk') {
-              data.books.forEach(b => {
-                  const engName = b.name.trim().toLowerCase();
-                  // Если книга есть в каноническом списке
-                  if (CANONICAL_BOOKS.includes(engName)) {
-                      // Переводим название
-                      if (newLang === 'ru' && RU_MAP[engName]) b.name = RU_MAP[engName];
-                      if (newLang === 'uk' && UK_MAP[engName]) b.name = UK_MAP[engName];
-                      
-                      // Добавляем книгу только один раз (автоматически отрезает дублирующийся хвост)
-                      if (!cleanBooks.find(cb => cb.name === b.name)) {
-                          cleanBooks.push(b);
-                      }
+          // --- УМНЫЙ СОРТИРОВЩИК И ПЕРЕВОДЧИК ---
+          data.books.forEach(b => {
+              let originalName = b.name.trim();
+              
+              // Исправляем нестандартные английские названия
+              if (originalName === "Psalm") originalName = "Psalms";
+              if (originalName === "Song of Songs") originalName = "Song of Solomon";
+
+              // Ищем, на каком месте должна стоять эта книга
+              let orderIndex = BIBLE_ORDER.indexOf(originalName);
+              if (orderIndex !== -1) {
+                  b._orderIndex = orderIndex; // Запоминаем правильное место
+                  
+                  // Переводим на выбранный язык
+                  if (newLang !== 'en' && TRANSLATIONS_MAP[newLang] && TRANSLATIONS_MAP[newLang][originalName]) {
+                      b.name = TRANSLATIONS_MAP[newLang][originalName];
+                  } else {
+                      b.name = originalName; 
                   }
-              });
-          } else {
-              // Для Английского и Испанского просто берем первые 66 книг и всё
-              cleanBooks = data.books.slice(0, 66);
-          }
-          
-          data.books = cleanBooks;
+                  
+                  sortedBooks.push(b);
+              }
+          });
+
+          // Сортируем книги в ИДЕАЛЬНО ПРАВИЛЬНОМ порядке!
+          sortedBooks.sort((a, b) => a._orderIndex - b._orderIndex);
+
+          // Убираем любые дубликаты (если в файле было несколько одинаковых книг)
+          let finalBooks = [];
+          let seen = new Set();
+          sortedBooks.forEach(b => {
+              if (!seen.has(b._orderIndex)) {
+                  seen.add(b._orderIndex);
+                  finalBooks.push(b);
+              }
+          });
+
+          data.books = finalBooks;
           cache.set(newLang, data);
         }
 
         state.currentBible = cache.get(newLang);
+        
+        // Защита от ошибок индекса после смены языка
         state.bookIndex = Math.min(state.bookIndex, state.currentBible.books.length - 1);
+        if (state.bookIndex < 0) state.bookIndex = 0;
         state.chapterNumber = Math.min(state.chapterNumber, state.currentBible.books[state.bookIndex].chapters.length);
+        if (state.chapterNumber < 1) state.chapterNumber = 1;
         state.selectorBookIndex = state.bookIndex;
 
         renderReader();
