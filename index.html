@@ -77,7 +77,7 @@
 <div class="header">
   <button class="header-btn" onclick="openSelector()" id="ref-btn">Загрузка...</button>
   <div class="hdr-right">
-    <button class="icon-btn" onclick="openNotes()" title="Заметки">📑</button>
+    <button class="icon-btn" onclick="openNotes()" title="Заметки">🗒</button>
     <button class="icon-btn" onclick="openSheet('settings-sheet')" title="Настройки">Aa</button>
   </div>
 </div>
@@ -91,7 +91,6 @@
 <!-- Оглавление -->
 <div class="overlay" id="selector">
   <div class="overlay-head"><b>Оглавление</b><button class="header-btn" onclick="closeSelector()">✕</button></div>
-  <div id="lang-row" style="padding:10px 16px;border-bottom:1px solid var(--border);display:flex;gap:8px;"></div>
   <div class="overlay-body">
     <div class="scroll-v" id="book-list" style="border-right:1px solid var(--border);"></div>
     <div class="scroll-v" id="chap-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;align-content:start;padding:12px;"></div>
@@ -114,6 +113,8 @@
       <button class="t-btn" style="background:#2c2c2e;color:#fff;" onclick="setTheme('dark')">Графит</button>
       <button class="t-btn" style="background:#000;color:#fff;" onclick="setTheme('night')">Ночь</button>
     </div>
+    <div class="sheet-label" style="margin-top:4px;">Перевод</div>
+    <div id="settings-lang-row" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;"></div>
   </div>
 </div>
 <!-- Панель стиха (YouVersion style) -->
@@ -210,8 +211,7 @@ async function loadBible(){
       const r=await fetch(FILES[lang]);
       if(!r.ok)throw new Error("HTTP "+r.status);
       const d=await r.json();
-      const n=BOOK_NAMES[lang];
-      if(n)d.books.forEach((b,i)=>{if(n[i])b.name=n[i];});
+      // Book names kept as-is from JSON files
       d.books.forEach(b=>b.chapters.forEach(ch=>ch.verses.forEach(v=>{v.text=(v.text||"").trim();})));
       cache.set(lang,d);
     }
@@ -374,11 +374,15 @@ function nav(d){
 function openSelector(){
   selBookIdx=bIdx;
   document.getElementById("selector").classList.add("open");
-  renderLR();renderBL();renderCG(bIdx);
+  renderBL();renderCG(bIdx);
 }
-function renderLR(){
-  document.getElementById("lang-row").innerHTML=Object.entries(LABELS).map(([k,v])=>
-    `<button class="header-btn" style="${k===lang?'background:var(--accent);color:#fff;':''}" onclick="switchL('${k}')">${v}</button>`
+function renderLR(){ /* lang row now in settings */ }
+
+function renderSettingsLang(){
+  const row=document.getElementById("settings-lang-row");
+  if(!row)return;
+  row.innerHTML=Object.entries(LABELS).map(([k,v])=>
+    `<button class="header-btn" style="${k===lang?'background:var(--accent);color:#fff;':''};width:100%;padding:10px 0;" onclick="switchL('${k}');renderSettingsLang()">${v}</button>`
   ).join("");
 }
 function renderBL(){
@@ -391,9 +395,12 @@ function renderCG(bi){
     `<button class="chap-btn${bi===bIdx&&c===cIdx?' cur':''}" onclick="bIdx=${bi};cIdx=${c};render();closeSelector();">${c+1}</button>`
   ).join("");
 }
-function switchL(l){lang=l;localStorage.setItem("bib-lang",l);bIdx=0;cIdx=0;selBookIdx=0;loadBible().then(()=>{renderLR();renderBL();renderCG(0);});}
+function switchL(l){lang=l;localStorage.setItem("bib-lang",l);bIdx=0;cIdx=0;selBookIdx=0;closeSheet();loadBible().then(()=>{renderBL();renderCG(0);});}
 function closeSelector(){document.getElementById("selector").classList.remove("open");}
-function openSheet(id){document.getElementById(id).classList.add("open");}
+function openSheet(id){
+  document.getElementById(id).classList.add("open");
+  if(id==="settings-sheet") renderSettingsLang();
+}
 function closeSheet(){document.querySelectorAll(".sheet").forEach(s=>s.classList.remove("open"));}
 function setTheme(t){
   document.body.setAttribute("data-theme",t);localStorage.setItem("bib-theme",t);
