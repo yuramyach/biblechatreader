@@ -451,77 +451,152 @@ function renderNotesScreen(){
 function delNoteAndRefresh(k){localStorage.removeItem(k);renderNotesScreen();}
 
 // ── READING PLAN (NT in 30 days) ──────────────────────────────────────────────
-const NT_PLAN=[
-  {title:"Матфея 1-4",   books:[[39,0],[39,1],[39,2],[39,3]]},
-  {title:"Матфея 5-7",   books:[[39,4],[39,5],[39,6]]},
-  {title:"Матфея 8-11",  books:[[39,7],[39,8],[39,9],[39,10]]},
-  {title:"Матфея 12-15", books:[[39,11],[39,12],[39,13],[39,14]]},
-  {title:"Матфея 16-19", books:[[39,15],[39,16],[39,17],[39,18]]},
-  {title:"Матфея 20-23", books:[[39,19],[39,20],[39,21],[39,22]]},
-  {title:"Матфея 24-28", books:[[39,23],[39,24],[39,25],[39,26],[39,27]]},
-  {title:"Марка 1-4",    books:[[40,0],[40,1],[40,2],[40,3]]},
-  {title:"Марка 5-8",    books:[[40,4],[40,5],[40,6],[40,7]]},
-  {title:"Марка 9-12",   books:[[40,8],[40,9],[40,10],[40,11]]},
-  {title:"Марка 13-16",  books:[[40,12],[40,13],[40,14],[40,15]]},
-  {title:"Луки 1-4",     books:[[41,0],[41,1],[41,2],[41,3]]},
-  {title:"Луки 5-8",     books:[[41,4],[41,5],[41,6],[41,7]]},
-  {title:"Луки 9-12",    books:[[41,8],[41,9],[41,10],[41,11]]},
-  {title:"Луки 13-16",   books:[[41,12],[41,13],[41,14],[41,15]]},
-  {title:"Луки 17-20",   books:[[41,16],[41,17],[41,18],[41,19]]},
-  {title:"Луки 21-24",   books:[[41,20],[41,21],[41,22],[41,23]]},
-  {title:"Иоанна 1-4",   books:[[42,0],[42,1],[42,2],[42,3]]},
-  {title:"Иоанна 5-8",   books:[[42,4],[42,5],[42,6],[42,7]]},
-  {title:"Иоанна 9-12",  books:[[42,8],[42,9],[42,10],[42,11]]},
-  {title:"Иоанна 13-17", books:[[42,12],[42,13],[42,14],[42,15],[42,16]]},
-  {title:"Иоанна 18-21", books:[[42,17],[42,18],[42,19],[42,20]]},
-  {title:"Деяния 1-4",   books:[[43,0],[43,1],[43,2],[43,3]]},
-  {title:"Деяния 5-9",   books:[[43,4],[43,5],[43,6],[43,7],[43,8]]},
-  {title:"Деяния 10-14", books:[[43,9],[43,10],[43,11],[43,12],[43,13]]},
-  {title:"Деяния 15-19", books:[[43,14],[43,15],[43,16],[43,17],[43,18]]},
-  {title:"Деяния 20-24", books:[[43,19],[43,20],[43,21],[43,22],[43,23]]},
-  {title:"Деяния 25-28", books:[[43,24],[43,25],[43,26],[43,27]]},
-  {title:"Римлянам 1-8", books:[[44,0],[44,1],[44,2],[44,3],[44,4],[44,5],[44,6],[44,7]]},
-  {title:"Римлянам 9-16",books:[[44,8],[44,9],[44,10],[44,11],[44,12],[44,13],[44,14],[44,15]]},
+// ── READING PLAN ─────────────────────────────────────────────────────────────
+// Plans: each entry = {id, name, desc, start_book (0=OT,39=NT), days}
+const PLAN_TEMPLATES = [
+  { id:"nt_30",   name:"Новый Завет за 30 дней",  desc:"~5 глав в день",  startBook:39, endBook:66 },
+  { id:"nt_90",   name:"Новый Завет за 90 дней",  desc:"~1-2 главы в день", startBook:39, endBook:66 },
+  { id:"bible_1", name:"Библия за 1 год",          desc:"~3-4 главы в день", startBook:0,  endBook:66 },
+  { id:"bible_2", name:"Библия за 2 года",         desc:"~2 главы в день",   startBook:0,  endBook:66 },
+  { id:"custom",  name:"Свой план",                desc:"Выбери книгу и срок", startBook:0,  endBook:66 },
 ];
 
+function buildPlanDays(startBook, endBook, totalDays){
+  if(!bible) return [];
+  const chapters = [];
+  for(let bi=startBook; bi<Math.min(endBook, bible.books.length); bi++){
+    for(let ci=0; ci<bible.books[bi].chapters.length; ci++){
+      chapters.push([bi, ci]);
+    }
+  }
+  const perDay = Math.ceil(chapters.length / totalDays);
+  const days = [];
+  for(let i=0; i<chapters.length; i+=perDay){
+    const slice = chapters.slice(i, i+perDay);
+    const first = slice[0], last = slice[slice.length-1];
+    const b1 = bible.books[first[0]].name, b2 = bible.books[last[0]].name;
+    const title = first[0]===last[0]
+      ? `${b1} ${first[1]+1}–${last[1]+1}`
+      : `${b1} ${first[1]+1} – ${b2} ${last[1]+1}`;
+    days.push({ title, chapters: slice });
+  }
+  return days;
+}
+
 function renderPlan(){
-  const done=JSON.parse(localStorage.getItem("plan_done")||"[]");
-  const pct=Math.round(done.length/NT_PLAN.length*100);
-  document.getElementById("plan-progress-text").textContent=`${done.length}/${NT_PLAN.length} дней`;
-  document.getElementById("plan-bar").style.width=pct+"%";
-  document.getElementById("plan-list").innerHTML=NT_PLAN.map((d,i)=>{
-    const isDone=done.includes(i);
-    return `<div class="plan-day${isDone?" done":""}" onclick="togglePlanDay(${i})">
-      <div class="plan-check">${isDone?"✓":""}</div>
-      <div class="plan-day-info">
-        <div class="plan-day-title">День ${i+1}</div>
-        <div class="plan-day-ref">${d.title}</div>
-      </div>
-      <button onclick="event.stopPropagation();goPlanDay(${i})"
-        style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer;">
-        Читать
+  const activePlan = JSON.parse(localStorage.getItem("active_plan")||"null");
+  const container = document.getElementById("plan-list");
+
+  if(!activePlan){
+    // Show plan selector
+    container.innerHTML = `
+      <p style="opacity:.6;font-size:14px;margin:0 0 16px;">Выберите план чтения:</p>
+      ${PLAN_TEMPLATES.map(p=>`
+        <div style="padding:16px;background:var(--surface);border-radius:14px;margin-bottom:10px;cursor:pointer;border:1px solid var(--border);"
+          onclick="selectPlan('${p.id}')">
+          <div style="font-weight:700;font-size:15px;margin-bottom:4px;">${p.name}</div>
+          <div style="font-size:13px;opacity:.6;">${p.desc}</div>
+        </div>`).join("")}
+    `;
+    document.getElementById("plan-progress-text").textContent = "";
+    document.getElementById("plan-bar").style.width = "0%";
+    return;
+  }
+
+  // Show active plan
+  const done = JSON.parse(localStorage.getItem("plan_done")||"[]");
+  const days = activePlan.days;
+  const pct = Math.round(done.length / days.length * 100);
+  document.getElementById("plan-progress-text").textContent = `${done.length}/${days.length} дней`;
+  document.getElementById("plan-bar").style.width = pct+"%";
+
+  container.innerHTML = `
+    <div style="display:flex;justify-content:space-between;margin-bottom:12px;align-items:center;">
+      <span style="font-size:14px;font-weight:600;color:var(--accent);">${activePlan.name}</span>
+      <button onclick="resetPlan()" style="background:none;border:1px solid var(--border);border-radius:8px;padding:4px 10px;font-size:12px;color:var(--text);cursor:pointer;">
+        Сменить план
       </button>
-    </div>`;
-  }).join("");
+    </div>
+    ${days.map((d,i)=>{
+      const isDone = done.includes(i);
+      const isToday = !isDone && done.length === i;
+      return `<div class="plan-day${isDone?" done":""}" style="${isToday?"border:2px solid var(--accent);":""}" onclick="togglePlanDay(${i})">
+        <div class="plan-check">${isDone?"✓":""}</div>
+        <div class="plan-day-info">
+          <div class="plan-day-title" style="${isToday?"color:var(--accent);":""}">День ${i+1}${isToday?" — сегодня":""}</div>
+          <div class="plan-day-ref">${d.title}</div>
+        </div>
+        <button onclick="event.stopPropagation();goPlanDay(${i})"
+          style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer;flex-shrink:0;">
+          Читать
+        </button>
+      </div>`;
+    }).join("")}
+  `;
+}
+
+function selectPlan(id){
+  if(!bible){ alert("Сначала загрузите Библию"); return; }
+  
+  if(id === "custom"){
+    // Custom plan dialog
+    const bookName = prompt("С какой книги начать? (например: Бытие, Матфея, Псалтирь)");
+    if(!bookName) return;
+    const daysStr = prompt("За сколько дней прочитать?");
+    if(!daysStr) return;
+    const totalDays = parseInt(daysStr);
+    if(!totalDays || totalDays < 1) return;
+    
+    const startBook = bible.books.findIndex(b => 
+      b.name.toLowerCase().includes(bookName.toLowerCase())
+    );
+    if(startBook === -1){ alert("Книга не найдена. Попробуй другое название."); return; }
+    
+    const days = buildPlanDays(startBook, bible.books.length, totalDays);
+    const plan = { id, name: `${bible.books[startBook].name} за ${totalDays} дней`, days };
+    localStorage.setItem("active_plan", JSON.stringify(plan));
+    localStorage.setItem("plan_done", "[]");
+    renderPlan();
+    return;
+  }
+
+  const tmpl = PLAN_TEMPLATES.find(p=>p.id===id);
+  if(!tmpl) return;
+  
+  const totalDays = {nt_30:30, nt_90:90, bible_1:365, bible_2:730}[id] || 30;
+  const days = buildPlanDays(tmpl.startBook, tmpl.endBook, totalDays);
+  const plan = { id, name: tmpl.name, days };
+  localStorage.setItem("active_plan", JSON.stringify(plan));
+  localStorage.setItem("plan_done", "[]");
+  renderPlan();
+}
+
+function resetPlan(){
+  if(confirm("Сбросить текущий план и выбрать новый?")){
+    localStorage.removeItem("active_plan");
+    localStorage.removeItem("plan_done");
+    renderPlan();
+  }
 }
 
 function togglePlanDay(i){
-  const done=JSON.parse(localStorage.getItem("plan_done")||"[]");
-  const idx=done.indexOf(i);
-  if(idx===-1)done.push(i);else done.splice(idx,1);
-  localStorage.setItem("plan_done",JSON.stringify(done));
+  const done = JSON.parse(localStorage.getItem("plan_done")||"[]");
+  const idx = done.indexOf(i);
+  if(idx===-1) done.push(i); else done.splice(idx,1);
+  localStorage.setItem("plan_done", JSON.stringify(done));
   renderPlan();
 }
 
 function goPlanDay(i){
-  const day=NT_PLAN[i];
-  if(!day||!day.books.length)return;
-  const[bi,ci]=day.books[0];
-  bIdx=bi;cIdx=ci;
+  const plan = JSON.parse(localStorage.getItem("active_plan")||"null");
+  if(!plan||!plan.days[i]) return;
+  const [bi,ci] = plan.days[i].chapters[0];
+  bIdx=bi; cIdx=ci;
   showScreen("reader");
   if(cache.has(lang)){bible=cache.get(lang);render();}
   else loadBible();
 }
+
 
 async function loadBible(){
   try{
