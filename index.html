@@ -1,0 +1,1105 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Bible App</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root{--bg:#fff;--text:#1d1d1f;--surface:#f2f2f7;--accent:#a0835d;--border:rgba(0,0,0,.1);--fs:20px;}
+    [data-theme="sepia"]{--bg:#f4ecd8;--text:#5b4636;--surface:#e9dec4;--accent:#8e7352;}
+    [data-theme="sand"]{--bg:#f0e4d0;--text:#4a3f35;--surface:#e5d8c1;--accent:#a67c52;}
+    [data-theme="olive"]{--bg:#e8eade;--text:#3c4030;--surface:#d8dbcb;--accent:#6b705c;}
+    [data-theme="dark"]{--bg:#2c2c2e;--text:#f5f5f7;--surface:#3a3a3c;--accent:#d1b894;--border:rgba(255,255,255,.1);}
+    [data-theme="night"]{--bg:#000;--text:#e5e5ea;--surface:#1c1c1e;--accent:#d1b894;--border:rgba(255,255,255,.2);}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,sans-serif;transition:.3s;line-height:1.6;}
+    .header{position:sticky;top:0;z-index:100;background:var(--bg);display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border);}
+    .header-btn{background:var(--surface);border:none;padding:8px 14px;border-radius:20px;color:var(--text);font-weight:600;font-size:14px;cursor:pointer;}
+    .icon-btn{background:var(--surface);border:none;width:36px;height:36px;border-radius:50%;color:var(--text);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;}
+    .hdr-right{display:flex;gap:8px;}
+    .content{padding:20px 20px 120px;max-width:600px;margin:0 auto;}
+    .verse{font-family:Georgia,serif;font-size:var(--fs);display:inline;cursor:pointer;border-radius:4px;padding:2px 1px;transition:background .15s;}
+    .verse.selected{background:rgba(160,131,93,.35);}
+    .v-num{font-size:.6em;font-weight:bold;color:var(--accent);margin-right:5px;vertical-align:super;}
+    .has-note .v-num::after{content:"·";font-size:1.4em;color:var(--accent);margin-left:1px;}
+    .hl-yellow{background:rgba(255,220,50,.4);border-radius:3px;}
+    .hl-green{background:rgba(100,200,100,.35);border-radius:3px;}
+    .hl-blue{background:rgba(80,160,255,.3);border-radius:3px;}
+    .hl-pink{background:rgba(255,100,150,.3);border-radius:3px;}
+    .hl-orange{background:rgba(255,150,50,.35);border-radius:3px;}
+    .nav-bar{display:flex;justify-content:space-between;margin:40px 0 20px;}
+    .overlay{position:fixed;inset:0;background:var(--bg);z-index:200;display:none;flex-direction:column;}
+    .overlay.open{display:flex;}
+    .overlay-head{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+    .overlay-body{display:grid;grid-template-columns:1fr 1.2fr;flex:1;overflow:hidden;}
+    .scroll-v{overflow-y:auto;padding:8px;}
+    .list-item{width:100%;text-align:left;padding:14px;border:none;background:none;color:var(--text);font-size:15px;border-radius:8px;cursor:pointer;}
+    .list-item.active{background:var(--accent);color:#fff;font-weight:700;}
+    .chap-btn{padding:14px 0;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;}
+    .chap-btn.cur{border-color:var(--accent);color:var(--accent);}
+    .sheet{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;display:none;align-items:flex-end;}
+    .sheet.open{display:flex;}
+    .sheet-box{background:var(--bg);width:100%;border-radius:24px 24px 0 0;padding:20px 20px 40px;max-height:85vh;overflow-y:auto;}
+    .sheet-label{text-align:center;margin-bottom:10px;opacity:.5;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;}
+    .theme-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;}
+    .t-btn{height:46px;border-radius:10px;border:2px solid transparent;cursor:pointer;font-size:11px;font-weight:700;}
+    /* Панель стиха */
+    .vp{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);border-radius:20px 20px 0 0;padding:16px 16px 30px;z-index:250;transform:translateY(100%);transition:.25s;box-shadow:0 -4px 20px rgba(0,0,0,.15);}
+    .vp.open{transform:translateY(0);}
+    .vp-ref{font-size:13px;font-weight:700;color:var(--accent);margin-bottom:4px;}
+    .vp-text{font-family:Georgia,serif;font-size:15px;opacity:.8;margin-bottom:14px;line-height:1.5;max-height:70px;overflow-y:auto;}
+    .vp-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
+    .vp-btn{padding:10px 6px;border-radius:12px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:12px;font-weight:600;cursor:pointer;}
+    .vp-btn.accent{background:var(--accent);color:#fff;border-color:var(--accent);}
+    .vp-note{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:10px;color:var(--text);font-family:inherit;font-size:15px;resize:none;outline:none;min-height:60px;display:none;margin-bottom:10px;}
+    .vp-note.show{display:block;}
+    .vp-save{width:100%;padding:12px;border-radius:12px;border:none;background:var(--accent);color:#fff;font-size:15px;font-weight:600;cursor:pointer;display:none;}
+    .vp-save.show{display:block;}
+    .vp-close{position:absolute;top:14px;right:14px;background:none;border:none;color:var(--text);font-size:18px;cursor:pointer;opacity:.4;padding:4px 8px;}
+    /* Лист заметок */
+    .ns{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:400;display:none;align-items:flex-end;}
+    .ns.open{display:flex;}
+    .ns-box{background:var(--bg);width:100%;border-radius:24px 24px 0 0;padding:20px;max-height:80vh;overflow-y:auto;}
+    .note-item{padding:14px;background:var(--surface);border-radius:14px;margin-bottom:12px;position:relative;}
+    .note-ref{font-size:12px;font-weight:700;color:var(--accent);margin-bottom:5px;}
+    .note-verse{font-family:Georgia,serif;font-size:13px;opacity:.65;margin-bottom:8px;font-style:italic;border-left:3px solid var(--accent);padding-left:8px;line-height:1.4;}
+    .note-text{font-size:15px;line-height:1.5;}
+    .color-dot{width:26px;height:26px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:.15s;}
+    .color-dot:hover,.color-dot.active{border-color:var(--text);transform:scale(1.15);}
+    .note-del{position:absolute;top:10px;right:10px;background:none;border:none;color:var(--text);opacity:.35;font-size:13px;cursor:pointer;padding:4px 8px;border-radius:6px;}
+    .note-del:hover{opacity:.7;background:var(--border);}
+    .empty-notes{text-align:center;padding:40px 20px;opacity:.5;font-size:15px;line-height:1.7;}
+
+    /* VICTORY SCREEN */
+    .victory-card{background:var(--surface);border-radius:18px;padding:20px;margin-bottom:14px;border:1px solid var(--border);}
+    .victory-card h4{margin:0 0 12px;font-size:15px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;font-size:11px;}
+    .counter-num{font-size:64px;font-weight:800;text-align:center;line-height:1;color:var(--accent);margin:8px 0 4px;}
+    .counter-label{text-align:center;font-size:13px;opacity:.6;margin-bottom:16px;}
+    .victory-btn{width:100%;padding:13px;border-radius:12px;border:none;font-size:15px;font-weight:600;cursor:pointer;margin-bottom:8px;}
+    .victory-btn.primary{background:var(--accent);color:#fff;}
+    .victory-btn.danger{background:transparent;border:1px solid var(--border);color:var(--text);opacity:.7;}
+    .victory-btn.secondary{background:var(--surface);border:1px solid var(--border);color:var(--text);}
+    .task-text{font-family:Georgia,serif;font-size:16px;line-height:1.6;margin-bottom:12px;}
+    .task-verse{font-size:13px;color:var(--accent);font-weight:600;margin-bottom:16px;}
+    .temptation-modal{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:none;align-items:center;justify-content:center;padding:20px;}
+    .temptation-modal.open{display:flex;}
+    .temptation-box{background:var(--bg);border-radius:20px;padding:24px;max-width:400px;width:100%;text-align:center;}
+    .temptation-verse{font-family:Georgia,serif;font-size:18px;line-height:1.6;margin:16px 0;color:var(--accent);}
+    .temptation-ref{font-size:13px;opacity:.6;margin-bottom:20px;}
+    .sermon-link{display:flex;align-items:center;gap:12px;padding:14px;background:var(--surface);border-radius:14px;text-decoration:none;color:var(--text);margin-bottom:8px;border:1px solid var(--border);}
+    .sermon-link:hover{border-color:var(--accent);}
+
+    /* SEARCH */
+    .search-bar{display:flex;gap:8px;margin-bottom:14px;}
+    .search-input{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 14px;color:var(--text);font-size:15px;outline:none;font-family:inherit;}
+    .search-result{padding:12px 14px;border-radius:12px;background:var(--surface);margin-bottom:8px;cursor:pointer;border:1px solid transparent;transition:.15s;}
+    .search-result:hover{border-color:var(--accent);}
+    .sr-ref{font-size:12px;font-weight:700;color:var(--accent);margin-bottom:4px;}
+    .sr-text{font-size:14px;line-height:1.5;}
+    .sr-highlight{background:rgba(160,131,93,.35);border-radius:3px;padding:0 2px;}
+
+    /* BOOKMARKS */
+    .bm-item{padding:14px;background:var(--surface);border-radius:14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;}
+    .bm-info{flex:1;}
+    .bm-ref{font-size:14px;font-weight:700;color:var(--accent);}
+    .bm-date{font-size:11px;opacity:.5;margin-top:3px;}
+    .bm-del{background:none;border:none;color:var(--text);opacity:.35;font-size:14px;cursor:pointer;padding:4px 8px;border-radius:6px;}
+
+    /* HISTORY */
+    .hist-item{padding:12px 14px;background:var(--surface);border-radius:12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;}
+    .hist-ref{font-size:14px;font-weight:600;}
+    .hist-date{font-size:11px;opacity:.5;}
+
+    /* READING PLAN */
+    .plan-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+    .plan-progress{height:6px;background:var(--surface);border-radius:3px;margin-bottom:16px;overflow:hidden;}
+    .plan-progress-bar{height:100%;background:var(--accent);border-radius:3px;transition:.3s;}
+    .plan-day{padding:12px 14px;border-radius:12px;margin-bottom:8px;display:flex;align-items:center;gap:12px;cursor:pointer;background:var(--surface);}
+    .plan-day.done{opacity:.5;}
+    .plan-check{width:22px;height:22px;border-radius:50%;border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;}
+    .plan-day.done .plan-check{background:var(--accent);color:#fff;}
+    .plan-day-info{flex:1;}
+    .plan-day-title{font-size:14px;font-weight:600;}
+    .plan-day-ref{font-size:12px;opacity:.6;margin-top:2px;}
+
+    /* BOTTOM NAV */
+    .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(6,1fr);z-index:90;padding-bottom:env(safe-area-inset-bottom);}
+    .bn-btn{background:none;border:none;padding:10px 4px;color:var(--text);font-size:10px;font-weight:600;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;opacity:.5;transition:.15s;}
+    .bn-btn.active{opacity:1;color:var(--accent);}
+    .bn-icon{font-size:20px;line-height:1;}
+    @media(max-width:500px){.overlay-body{grid-template-columns:38% 62%;}}
+  </style>
+</head>
+<body data-theme="sepia">
+<div class="header">
+  <button class="header-btn" onclick="openSelector()" id="ref-btn">Загрузка...</button>
+  <div class="hdr-right">
+    <button class="icon-btn" onclick="openSheet('settings-sheet')" title="Настройки">Aa</button>
+  </div>
+</div>
+
+<!-- SCREENS -->
+<div id="screen-reader" class="content">
+  <div id="reader"></div>
+  <div class="nav-bar">
+    <button class="header-btn" onclick="nav(-1)">← Назад</button>
+    <button class="header-btn bm-add-btn" onclick="addBookmark()" title="Добавить закладку">🔖</button>
+    <button class="header-btn" onclick="nav(1)">Вперед →</button>
+  </div>
+</div>
+
+<div id="screen-search" class="content" style="display:none;">
+  <div class="search-bar">
+    <input class="search-input" id="search-input" placeholder="Поиск по тексту..." oninput="doSearch(this.value)" />
+  </div>
+  <div id="search-results"></div>
+</div>
+
+<div id="screen-bookmarks" class="content" style="display:none;">
+  <h3 style="margin:0 0 16px;font-size:18px;">Закладки</h3>
+  <div id="bm-list"></div>
+</div>
+
+<div id="screen-notes" class="content" style="display:none;">
+  <h3 style="margin:0 0 16px;font-size:18px;">Заметки</h3>
+  <div id="notes-list-screen"></div>
+</div>
+
+<div id="screen-plan" class="content" style="display:none;">
+  <div class="plan-header">
+    <h3 style="margin:0;font-size:18px;">План чтения</h3>
+    <span id="plan-progress-text" style="font-size:13px;color:var(--accent);font-weight:600;"></span>
+  </div>
+  <div class="plan-progress"><div class="plan-progress-bar" id="plan-bar"></div></div>
+  <div id="plan-list"></div>
+</div>
+
+<!-- Victory Screen -->
+<div id="screen-victory" class="content" style="display:none;">
+
+  <!-- Counter -->
+  <div class="victory-card">
+    <h4>Дней чистоты</h4>
+    <div class="counter-num" id="victory-days">0</div>
+    <div class="counter-label" id="victory-since">Начни сегодня</div>
+    <button class="victory-btn primary" onclick="markClean()">✅ Сегодня я устоял</button>
+    <button class="victory-btn danger" onclick="confirmFall()">Я упал...</button>
+  </div>
+
+  <!-- Daily task -->
+  <div class="victory-card">
+    <h4>Задание на сегодня</h4>
+    <div class="task-text" id="task-text"></div>
+    <div class="task-verse" id="task-verse"></div>
+    <button class="victory-btn secondary" id="task-done-btn" onclick="markTaskDone()">Выполнено ✓</button>
+  </div>
+
+  <!-- Temptation button -->
+  <div class="victory-card">
+    <h4>Помощь в трудный момент</h4>
+    <p style="font-size:14px;opacity:.7;margin:0 0 12px;line-height:1.5;">Если чувствуешь искушение — нажми прямо сейчас</p>
+    <button class="victory-btn primary" onclick="openTemptation()" style="background:#e74c3c;">🆘 Мне нужна помощь сейчас</button>
+  </div>
+
+  <!-- Sermons -->
+  <div class="victory-card">
+    <h4>Духовное питание</h4>
+    <a class="sermon-link" href="https://www.youtube.com/@saltanenko" target="_blank">
+      <span style="font-size:24px;">▶️</span>
+      <div>
+        <div style="font-weight:600;font-size:14px;">Проповеди Салтаненко</div>
+        <div style="font-size:12px;opacity:.6;">YouTube канал</div>
+      </div>
+    </a>
+    <a class="sermon-link" href="https://t.me/saltanenko" target="_blank">
+      <span style="font-size:24px;">✈️</span>
+      <div>
+        <div style="font-weight:600;font-size:14px;">Telegram канал</div>
+        <div style="font-size:12px;opacity:.6;">Ежедневные слова</div>
+      </div>
+    </a>
+  </div>
+
+</div>
+
+<!-- Temptation Modal -->
+<div class="temptation-modal" id="temptation-modal" onclick="closeTemptation()">
+  <div class="temptation-box" onclick="event.stopPropagation()">
+    <div style="font-size:32px;margin-bottom:8px;">🛡️</div>
+    <div style="font-size:18px;font-weight:700;margin-bottom:4px;">Стой твёрдо</div>
+    <div style="font-size:13px;opacity:.6;margin-bottom:16px;">Господь с тобой прямо сейчас</div>
+    <div class="temptation-verse" id="temptation-verse"></div>
+    <div class="temptation-ref" id="temptation-ref"></div>
+    <p style="font-size:14px;line-height:1.6;margin-bottom:20px;opacity:.8;" id="temptation-tip"></p>
+    <button onclick="closeTemptation()" style="width:100%;padding:13px;border-radius:12px;border:none;background:var(--accent);color:#fff;font-size:15px;font-weight:600;cursor:pointer;">
+      Я устою. Господь поможет 💪
+    </button>
+  </div>
+</div>
+
+<!-- Bottom Navigation -->
+<nav class="bottom-nav">
+  <button class="bn-btn active" id="bn-reader" onclick="showScreen('reader')">
+    <span class="bn-icon">📖</span>Читать
+  </button>
+  <button class="bn-btn" id="bn-search" onclick="showScreen('search')">
+    <span class="bn-icon">🔍</span>Поиск
+  </button>
+  <button class="bn-btn" id="bn-bookmarks" onclick="showScreen('bookmarks')">
+    <span class="bn-icon">🔖</span>Закладки
+  </button>
+  <button class="bn-btn" id="bn-notes" onclick="showScreen('notes')">
+    <span class="bn-icon">🗒</span>Заметки
+  </button>
+  <button class="bn-btn" id="bn-plan" onclick="showScreen('plan')">
+    <span class="bn-icon">📅</span>План
+  </button>
+  <button class="bn-btn" id="bn-victory" onclick="showScreen('victory')">
+    <span class="bn-icon">⚔️</span>Победа
+  </button>
+</nav>
+<!-- Оглавление -->
+<div class="overlay" id="selector">
+  <div class="overlay-head"><b>Оглавление</b><button class="header-btn" onclick="closeSelector()">✕</button></div>
+  <div class="overlay-body">
+    <div class="scroll-v" id="book-list" style="border-right:1px solid var(--border);"></div>
+    <div class="scroll-v" id="chap-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;align-content:start;padding:12px;"></div>
+  </div>
+</div>
+<!-- Настройки -->
+<div class="sheet" id="settings-sheet" onclick="closeSheet()">
+  <div class="sheet-box" onclick="event.stopPropagation()">
+    <div class="sheet-label">Размер шрифта</div>
+    <div style="display:flex;gap:10px;margin-bottom:20px;">
+      <button class="header-btn" style="flex:1;padding:12px;" onclick="changeFs(-2)">А−</button>
+      <button class="header-btn" style="flex:1;padding:12px;" onclick="changeFs(2)">А+</button>
+    </div>
+    <div class="sheet-label">Тема</div>
+    <div class="theme-grid">
+      <button class="t-btn" style="background:#fff;color:#000;border:1px solid #ddd;" onclick="setTheme('light')">Свет</button>
+      <button class="t-btn" style="background:#f4ecd8;color:#5b4636;" onclick="setTheme('sepia')">Бумага</button>
+      <button class="t-btn" style="background:#f0e4d0;color:#4a3f35;" onclick="setTheme('sand')">Песок</button>
+      <button class="t-btn" style="background:#e8eade;color:#3c4030;" onclick="setTheme('olive')">Олива</button>
+      <button class="t-btn" style="background:#2c2c2e;color:#fff;" onclick="setTheme('dark')">Графит</button>
+      <button class="t-btn" style="background:#000;color:#fff;" onclick="setTheme('night')">Ночь</button>
+    </div>
+    <div class="sheet-label" style="margin-top:4px;">Перевод</div>
+    <div id="settings-lang-row" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;"></div>
+    <div class="sheet-label" style="margin-top:4px;">Язык интерфейса</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
+      <button class="header-btn" id="ui-ru" onclick="setUiLang('ru')" style="padding:10px 0;">RU</button>
+      <button class="header-btn" id="ui-uk" onclick="setUiLang('uk')" style="padding:10px 0;">UK</button>
+      <button class="header-btn" id="ui-en" onclick="setUiLang('en')" style="padding:10px 0;">EN</button>
+      <button class="header-btn" id="ui-es" onclick="setUiLang('es')" style="padding:10px 0;">ES</button>
+    </div>
+  </div>
+</div>
+<!-- Панель стиха (YouVersion style) -->
+<div class="vp" id="vp">
+  <button class="vp-close" onclick="clearSel()">✕</button>
+  <div class="vp-ref" id="vp-ref"></div>
+  <div class="vp-text" id="vp-text"></div>
+  <div class="vp-actions">
+    <button class="vp-btn" onclick="copyVerse()">📋 Копировать</button>
+    <button class="vp-btn" onclick="explainVerse()">🕊️ Пояснить</button>
+    <button class="vp-btn accent" onclick="toggleNote()">📝 Заметка</button>
+  </div>
+  <div class="vp-colors" id="vp-colors" style="display:flex;gap:8px;margin-bottom:12px;align-items:center;">
+    <span style="font-size:12px;opacity:.6;margin-right:4px;">Цвет:</span>
+    <button class="color-dot" style="background:#ffdc32;" onclick="setHL('yellow')" data-c="yellow"></button>
+    <button class="color-dot" style="background:#64c864;" onclick="setHL('green')"  data-c="green"></button>
+    <button class="color-dot" style="background:#50a0ff;" onclick="setHL('blue')"   data-c="blue"></button>
+    <button class="color-dot" style="background:#ff6496;" onclick="setHL('pink')"   data-c="pink"></button>
+    <button class="color-dot" style="background:#ff9632;" onclick="setHL('orange')" data-c="orange"></button>
+    <button class="color-dot" style="background:transparent;border:1px dashed var(--border);font-size:11px;color:var(--text);padding:0 6px;width:auto;" onclick="setHL('')" title="Убрать">✕</button>
+  </div>
+  <textarea class="vp-note" id="vp-note" placeholder="Напишите заметку к стиху..."></textarea>
+  <button class="vp-save" id="vp-save" onclick="saveNote()">Сохранить</button>
+</div>
+<!-- notes now in screen -->
+<script>
+const tg=window.Telegram?.WebApp;
+const BOOK_NAMES={
+  ru:["Бытие","Исход","Левит","Числа","Второзаконие","Иисус Навин","Судьи","Руфь","1 Царств","2 Царств","3 Царств","4 Царств","1 Паралипоменон","2 Паралипоменон","Ездра","Неемия","Есфирь","Иов","Псалтирь","Притчи","Екклесиаст","Песня песней","Исайя","Иеремия","Плач Иеремии","Иезекиль","Даниил","Осия","Иоиль","Амос","Авдий","Иона","Михей","Наум","Аввакум","Софония","Аггей","Захария","Малахия","Матфея","Марка","Луки","Иоанна","Деяния","Римлянам","1 Коринфянам","2 Коринфянам","Галатам","Ефесянам","Филиппийцам","Колоссянам","1 Фессалоникийцам","2 Фессалоникийцам","1 Тимофею","2 Тимофею","Титу","Филимону","Евреям","Иакова","1 Петра","2 Петра","1 Иоанна","2 Иоанна","3 Иоанна","Иуды","Откровение"],
+  uk:["Буття","Вихід","Левит","Числа","Повторення Закону","Ісус Навин","Судді","Рут","1 Самуїла","2 Самуїла","1 Царів","2 Царів","1 Хронік","2 Хронік","Ездра","Неємія","Естер","Йов","Псалми","Приповісті","Екклезіяст","Пісня пісень","Ісая","Єремія","Плач Єремії","Єзекіїль","Даниїл","Осія","Йоїл","Амос","Овадія","Йона","Михей","Наум","Авакум","Софонія","Огій","Захарія","Малахія","Матвія","Марка","Луки","Івана","Дії","Римлян","1 Коринтян","2 Коринтян","Галатів","Ефесян","Филип'янам","Колосян","1 Солунян","2 Солунян","1 Тимофія","2 Тимофія","Тита","Филимону","Євреїв","Якова","1 Петра","2 Петра","1 Івана","2 Івана","3 Івана","Юди","Об'явлення"],
+  en:["Genesis","Exodus","Leviticus","Numbers","Deuteronomy","Joshua","Judges","Ruth","1 Samuel","2 Samuel","1 Kings","2 Kings","1 Chronicles","2 Chronicles","Ezra","Nehemiah","Esther","Job","Psalms","Proverbs","Ecclesiastes","Song of Solomon","Isaiah","Jeremiah","Lamentations","Ezekiel","Daniel","Hosea","Joel","Amos","Obadiah","Jonah","Micah","Nahum","Habakkuk","Zephaniah","Haggai","Zechariah","Malachi","Matthew","Mark","Luke","John","Acts","Romans","1 Corinthians","2 Corinthians","Galatians","Ephesians","Philippians","Colossians","1 Thessalonians","2 Thessalonians","1 Timothy","2 Timothy","Titus","Philemon","Hebrews","James","1 Peter","2 Peter","1 John","2 John","3 John","Jude","Revelation"],
+  es:["Génesis","Éxodo","Levítico","Números","Deuteronomio","Josué","Jueces","Rut","1 Samuel","2 Samuel","1 Reyes","2 Reyes","1 Crónicas","2 Crónicas","Esdras","Nehemías","Ester","Job","Salmos","Proverbios","Eclesiastés","Cantares","Isaías","Jeremías","Lamentaciones","Ezequiel","Daniel","Oseas","Joel","Amós","Abdías","Jonás","Miqueas","Nahúm","Habacuc","Sofonías","Hageo","Zacarías","Malaquías","Mateo","Marcos","Lucas","Juan","Hechos","Romanos","1 Corintios","2 Corintios","Gálatas","Efesios","Filipenses","Colosenses","1 Tesalonicenses","2 Tesalonicenses","1 Timoteo","2 Timoteo","Tito","Filemón","Hebreos","Santiago","1 Pedro","2 Pedro","1 Juan","2 Juan","3 Juan","Judas","Apocalipsis"],
+};
+const FILES={ru:"data/ru_synodal.json",uk:"data/uk_ogienko.json",en:"data/en_akjv.json",es:"data/es_rv.json"};
+const LABELS={ru:"RU",uk:"UK",en:"EN",es:"ES"};
+
+// UI interface language (separate from Bible translation)
+const UI_STRINGS = {
+  ru: { read:"Читать", search:"Поиск", bookmarks:"Закладки", notes:"Заметки", plan:"План", victory:"Победа",
+        settings:"Настройки", fontSize:"Размер шрифта", theme:"Тема", translation:"Перевод", uiLang:"Язык интерфейса",
+        back:"← Назад", forward:"Вперед →", bookmark:"🔖", noBookmarks:"Нет закладок. Нажми 🔖 чтобы сохранить главу.",
+        noNotes:"Нет заметок.
+
+Нажмите на стих → 📝 Заметка.", copy:"Копировать", explain:"Пояснить", note:"Заметка",
+        save:"Сохранить", goTo:"Перейти к стиху", delete:"Удалить", loading:"Загрузка...", error:"Ошибка",
+        retry:"Повторить", searchPlaceholder:"Поиск по тексту...", searchMin:"Введите минимум 3 символа",
+        searching:"Поиск...", found:"Найдено:", first50:"(первые 50)", notFound:"Ничего не найдено",
+        myNotes:"Заметки", myBookmarks:"Закладки", contents:"Оглавление", readingPlan:"План чтения",
+        day:"День", today:"— сегодня", read_btn:"Читать", changePlan:"Сменить план", resetPlan:"Сбросить план и выбрать новый?",
+        selectPlan:"Выберите план чтения:", days:"дней", victory:"Победа" },
+  uk: { read:"Читати", search:"Пошук", bookmarks:"Закладки", notes:"Нотатки", plan:"План", victory:"Перемога",
+        settings:"Налаштування", fontSize:"Розмір шрифту", theme:"Тема", translation:"Переклад", uiLang:"Мова інтерфейсу",
+        back:"← Назад", forward:"Вперед →", bookmark:"🔖", noBookmarks:"Немає закладок. Натисни 🔖 щоб зберегти главу.",
+        noNotes:"Немає нотаток.
+
+Натисніть на вірш → 📝 Нотатка.", copy:"Копіювати", explain:"Пояснити", note:"Нотатка",
+        save:"Зберегти", goTo:"Перейти до вірша", delete:"Видалити", loading:"Завантаження...", error:"Помилка",
+        retry:"Повторити", searchPlaceholder:"Пошук по тексту...", searchMin:"Введіть мінімум 3 символи",
+        searching:"Пошук...", found:"Знайдено:", first50:"(перші 50)", notFound:"Нічого не знайдено",
+        myNotes:"Нотатки", myBookmarks:"Закладки", contents:"Зміст", readingPlan:"План читання",
+        day:"День", today:"— сьогодні", read_btn:"Читати", changePlan:"Змінити план", resetPlan:"Скинути план і вибрати новий?",
+        selectPlan:"Виберіть план читання:", days:"днів", victory:"Перемога" },
+  en: { read:"Read", search:"Search", bookmarks:"Bookmarks", notes:"Notes", plan:"Plan", victory:"Victory",
+        settings:"Settings", fontSize:"Font size", theme:"Theme", translation:"Translation", uiLang:"Interface language",
+        back:"← Back", forward:"Forward →", bookmark:"🔖", noBookmarks:"No bookmarks. Tap 🔖 to save a chapter.",
+        noNotes:"No notes.
+
+Tap a verse → 📝 Note to add one.", copy:"Copy", explain:"Explain", note:"Note",
+        save:"Save", goTo:"Go to verse", delete:"Delete", loading:"Loading...", error:"Error",
+        retry:"Retry", searchPlaceholder:"Search text...", searchMin:"Enter at least 3 characters",
+        searching:"Searching...", found:"Found:", first50:"(first 50)", notFound:"Nothing found",
+        myNotes:"Notes", myBookmarks:"Bookmarks", contents:"Contents", readingPlan:"Reading plan",
+        day:"Day", today:"— today", read_btn:"Read", changePlan:"Change plan", resetPlan:"Reset plan and choose a new one?",
+        selectPlan:"Choose a reading plan:", days:"days", victory:"Victory" },
+  es: { read:"Leer", search:"Buscar", bookmarks:"Marcadores", notes:"Notas", plan:"Plan", victory:"Victoria",
+        settings:"Ajustes", fontSize:"Tamaño de fuente", theme:"Tema", translation:"Traducción", uiLang:"Idioma de interfaz",
+        back:"← Atrás", forward:"Adelante →", bookmark:"🔖", noBookmarks:"Sin marcadores. Toca 🔖 para guardar un capítulo.",
+        noNotes:"Sin notas.
+
+Toca un versículo → 📝 Nota para agregar.", copy:"Copiar", explain:"Explicar", note:"Nota",
+        save:"Guardar", goTo:"Ir al versículo", delete:"Borrar", loading:"Cargando...", error:"Error",
+        retry:"Reintentar", searchPlaceholder:"Buscar texto...", searchMin:"Ingresa al menos 3 caracteres",
+        searching:"Buscando...", found:"Encontrado:", first50:"(primeros 50)", notFound:"Nada encontrado",
+        myNotes:"Notas", myBookmarks:"Marcadores", contents:"Contenido", readingPlan:"Plan de lectura",
+        day:"Día", today:"— hoy", read_btn:"Leer", changePlan:"Cambiar plan", resetPlan:"¿Restablecer plan y elegir uno nuevo?",
+        selectPlan:"Elige un plan de lectura:", days:"días", victory:"Victoria" },
+};
+
+let uiLang = localStorage.getItem("ui-lang") || "ru";
+function ui(key){ return (UI_STRINGS[uiLang]||UI_STRINGS.ru)[key] || key; }
+let bible=null,bIdx=parseInt(localStorage.getItem("bib-b"))||0,cIdx=parseInt(localStorage.getItem("bib-c"))||0;
+let lang=localStorage.getItem("bib-lang")||"ru",sel=new Map(),selBookIdx=0;
+const cache=new Map();
+
+function setHL(color){
+  const nums=Array.from(sel.keys()).sort((a,b)=>a-b);
+  nums.forEach(n=>{
+    const k=`vhl_${lang}_${bIdx}_${cIdx}_${n}`;
+    color?localStorage.setItem(k,color):localStorage.removeItem(k);
+  });
+  // Update active dot
+  document.querySelectorAll(".color-dot").forEach(d=>{
+    d.classList.toggle("active", d.dataset.c===color);
+  });
+  // Apply highlight visually without full re-render
+  nums.forEach(n=>{
+    const el=document.querySelector(`.verse[data-n="${n}"]`);
+    if(!el)return;
+    ["yellow","green","blue","pink","orange"].forEach(c=>el.classList.remove("hl-"+c));
+    if(color)el.classList.add("hl-"+color);
+  });
+  // Auto-save note when color selected (like YouVersion)
+  const noteVal=document.getElementById("vp-note").value.trim();
+  if(noteVal){
+    nums.forEach(n=>{
+      localStorage.setItem(`vnote_${lang}_${bIdx}_${cIdx}_${n}`,noteVal);
+    });
+    // Update dot indicators
+    nums.forEach(n=>{
+      const el=document.querySelector(`.verse[data-n="${n}"]`);
+      if(el)el.classList.add("has-note");
+    });
+  }
+  // Also save highlight even without note (dot for color)
+  if(color){
+    nums.forEach(n=>{
+      const el=document.querySelector(`.verse[data-n="${n}"]`);
+      if(el)el.classList.add("has-note");
+    });
+  } else {
+    // Removed color - check if still has note
+    nums.forEach(n=>{
+      const hasNote=!!localStorage.getItem(`vnote_${lang}_${bIdx}_${cIdx}_${n}`);
+      const el=document.querySelector(`.verse[data-n="${n}"]`);
+      if(el)el.classList.toggle("has-note",hasNote);
+    });
+  }
+}
+
+function goToVerse(nl,nb,nc,nv){
+  if(nl!==lang){lang=nl;localStorage.setItem("bib-lang",nl);}
+  bIdx=nb;cIdx=nc;
+  showScreen("reader");
+  if(cache.has(lang)){
+    bible=cache.get(lang);
+    render();
+    setTimeout(()=>{
+      const el=document.querySelector(`.verse[data-n="${nv}"]`);
+      if(el)el.scrollIntoView({behavior:"smooth",block:"center"});
+    },250);
+  }else{
+    loadBible().then(()=>{
+      setTimeout(()=>{
+        const el=document.querySelector(`.verse[data-n="${nv}"]`);
+        if(el)el.scrollIntoView({behavior:"smooth",block:"center"});
+      },350);
+    });
+  }
+}
+
+// ── SCREEN MANAGEMENT ────────────────────────────────────────────────────────
+function showScreen(name){
+  ["reader","search","bookmarks","notes","plan","victory"].forEach(s=>{
+    document.getElementById("screen-"+s).style.display=s===name?"block":"none";
+    const btn=document.getElementById("bn-"+s);
+    if(btn)btn.classList.toggle("active",s===name);
+  });
+  document.getElementById("ref-btn").style.display=name==="reader"?"":"none";
+  if(name==="search"){document.getElementById("search-input").focus();}
+  if(name==="bookmarks"){renderBookmarks();}
+  if(name==="notes"){renderNotesScreen();}
+  if(name==="plan"){renderPlan();}
+  if(name==="victory"){renderVictory();}
+}
+
+// ── BOOKMARKS ─────────────────────────────────────────────────────────────────
+function addBookmark(){
+  if(!bible)return;
+  const book=bible.books[bIdx].name;
+  const ref=`${book} ${cIdx+1}`;
+  const key=`bm_${lang}_${bIdx}_${cIdx}`;
+  const bm={ref,lang,bIdx,cIdx,date:new Date().toLocaleDateString()};
+  localStorage.setItem(key,JSON.stringify(bm));
+  if(tg?.HapticFeedback)tg.HapticFeedback.notificationOccurred("success");
+  // Show brief confirmation
+  const btn=document.querySelector(".bm-add-btn");
+  if(btn){const orig=btn.textContent;btn.textContent="✓ Сохранено";setTimeout(()=>btn.textContent=orig,1500);}
+}
+
+function renderBookmarks(){
+  const list=document.getElementById("bm-list");
+  const bms=[];
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    if(!k||!k.startsWith("bm_"))continue;
+    try{bms.push({k,...JSON.parse(localStorage.getItem(k))});}catch(e){}
+  }
+  if(!bms.length){
+    list.innerHTML='<div class="empty-notes">Нет закладок.<br><br>Нажмите 🔖 в читалке чтобы сохранить главу.</div>';
+    return;
+  }
+  list.innerHTML=bms.map(b=>`
+    <div class="bm-item" onclick="goToChap('${b.lang}',${b.bIdx},${b.cIdx})">
+      <div class="bm-info">
+        <div class="bm-ref">${b.ref}</div>
+        <div class="bm-date">${b.date||""}</div>
+      </div>
+      <button class="bm-del" onclick="event.stopPropagation();delBookmark('${b.k}')" title="Удалить">✕</button>
+    </div>`).join("");
+}
+
+function delBookmark(k){localStorage.removeItem(k);renderBookmarks();}
+
+function goToChap(nl,nb,nc){
+  if(nl!==lang){lang=nl;localStorage.setItem("bib-lang",nl);}
+  bIdx=nb;cIdx=nc;
+  showScreen("reader");
+  if(cache.has(lang)){bible=cache.get(lang);render();}
+  else loadBible();
+}
+
+// ── SEARCH ────────────────────────────────────────────────────────────────────
+let searchTimer=null;
+function doSearch(q){
+  clearTimeout(searchTimer);
+  const res=document.getElementById("search-results");
+  if(!q||q.length<3){res.innerHTML='<div class="empty-notes">Введите минимум 3 символа</div>';return;}
+  res.innerHTML='<div class="empty-notes">Поиск...</div>';
+  searchTimer=setTimeout(()=>_runSearch(q),300);
+}
+
+function _runSearch(q){
+  if(!bible){document.getElementById("search-results").innerHTML='<div class="empty-notes">Сначала загрузите Библию</div>';return;}
+  const res=[];
+  const ql=q.toLowerCase();
+  for(let bi=0;bi<bible.books.length;bi++){
+    const book=bible.books[bi];
+    for(let ci=0;ci<book.chapters.length;ci++){
+      const ch=book.chapters[ci];
+      for(let vi=0;vi<ch.verses.length;vi++){
+        const v=ch.verses[vi];
+        if(v.text.toLowerCase().includes(ql)){
+          res.push({bi,ci,vn:v.verse,ref:`${book.name} ${ci+1}:${v.verse}`,text:v.text});
+          if(res.length>=50)break;
+        }
+      }
+      if(res.length>=50)break;
+    }
+    if(res.length>=50)break;
+  }
+  const container=document.getElementById("search-results");
+  if(!res.length){container.innerHTML='<div class="empty-notes">Ничего не найдено</div>';return;}
+  const esc=s=>s.replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  const highlight=(t,q)=>{
+    const idx=t.toLowerCase().indexOf(q.toLowerCase());
+    if(idx===-1)return esc(t);
+    return esc(t.slice(0,idx))+`<span class="sr-highlight">${esc(t.slice(idx,idx+q.length))}</span>`+esc(t.slice(idx+q.length));
+  };
+  container.innerHTML=`<div style="font-size:12px;opacity:.5;margin-bottom:10px;">Найдено: ${res.length}${res.length===50?" (первые 50)":""}</div>`+
+    res.map(r=>`
+      <div class="search-result" onclick="goToVerse('${lang}',${r.bi},${r.ci},${r.vn})">
+        <div class="sr-ref">${r.ref}</div>
+        <div class="sr-text">${highlight(r.text,q)}</div>
+      </div>`).join("");
+}
+
+// ── NOTES SCREEN ──────────────────────────────────────────────────────────────
+function renderNotesScreen(){
+  const list=document.getElementById("notes-list-screen");
+  const all=[];
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    if(!k||!k.startsWith("vnote_"))continue;
+    const p=k.split("_");if(p.length<5)continue;
+    const nl=p[1],nb=parseInt(p[2]),nc=parseInt(p[3]),nv=parseInt(p[4]);
+    const nt=localStorage.getItem(k);if(!nt)continue;
+    const bd=cache.get(nl);if(!bd)continue;
+    const bn=bd.books[nb]?.name||"?";
+    const vt=bd.books[nb]?.chapters[nc]?.verses?.find(v=>v.verse===nv)?.text||"";
+    all.push({k,ref:`${bn} ${nc+1}:${nv}`,verse:vt,note:nt,nl,nb,nc,nv});
+  }
+  if(!all.length){
+    list.innerHTML='<div class="empty-notes">Нет заметок.<br><br>Нажмите на стих → 📝 Заметка.</div>';
+    return;
+  }
+  list.innerHTML=all.map(n=>`
+    <div class="note-item">
+      <div class="note-ref">${n.ref}</div>
+      ${n.verse?`<div class="note-verse">${n.verse}</div>`:""}
+      <div class="note-text">${n.note}</div>
+      <div style="display:flex;gap:8px;margin-top:12px;">
+        <button onclick="goToVerse('${n.nl}',${n.nb},${n.nc},${n.nv})"
+          style="flex:1;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:8px;font-size:13px;font-weight:600;cursor:pointer;">
+          Перейти к стиху
+        </button>
+        <button onclick="delNoteAndRefresh('${n.k}')"
+          style="background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;">
+          Удалить
+        </button>
+      </div>
+    </div>`).join("");
+}
+function delNoteAndRefresh(k){localStorage.removeItem(k);renderNotesScreen();}
+
+// ── READING PLAN (NT in 30 days) ──────────────────────────────────────────────
+// ── READING PLAN ─────────────────────────────────────────────────────────────
+// Plans: each entry = {id, name, desc, start_book (0=OT,39=NT), days}
+const PLAN_TEMPLATES = [
+  { id:"nt_30",   name:"Новый Завет за 30 дней",  desc:"~5 глав в день",    startBook:39, endBook:999 },
+  { id:"nt_90",   name:"Новый Завет за 90 дней",  desc:"~1-2 главы в день", startBook:39, endBook:999 },
+  { id:"bible_1", name:"Библия за 1 год",          desc:"~3-4 главы в день", startBook:0,  endBook:999 },
+  { id:"bible_2", name:"Библия за 2 года",         desc:"~2 главы в день",   startBook:0,  endBook:999 },
+  { id:"custom",  name:"Свой план",                desc:"Выбери книгу и срок", startBook:0, endBook:999 },
+];
+
+function buildPlanDays(startBook, endBook, totalDays){
+  if(!bible) return [];
+  const chapters = [];
+  const actualEnd = Math.min(endBook, bible.books.length); // use real book count
+  for(let bi=startBook; bi<actualEnd; bi++){
+    for(let ci=0; ci<bible.books[bi].chapters.length; ci++){
+      chapters.push([bi, ci]);
+    }
+  }
+  const perDay = Math.ceil(chapters.length / totalDays);
+  const days = [];
+  for(let i=0; i<chapters.length; i+=perDay){
+    const slice = chapters.slice(i, i+perDay);
+    const first = slice[0], last = slice[slice.length-1];
+    const b1 = bible.books[first[0]].name, b2 = bible.books[last[0]].name;
+    const title = first[0]===last[0]
+      ? `${b1} ${first[1]+1}–${last[1]+1}`
+      : `${b1} ${first[1]+1} – ${b2} ${last[1]+1}`;
+    days.push({ title, chapters: slice });
+  }
+  return days;
+}
+
+function renderPlan(){
+  const activePlan = JSON.parse(localStorage.getItem("active_plan")||"null");
+  const container = document.getElementById("plan-list");
+
+  if(!activePlan){
+    // Show plan selector
+    container.innerHTML = `
+      <p style="opacity:.6;font-size:14px;margin:0 0 16px;">Выберите план чтения:</p>
+      ${PLAN_TEMPLATES.map(p=>`
+        <div style="padding:16px;background:var(--surface);border-radius:14px;margin-bottom:10px;cursor:pointer;border:1px solid var(--border);"
+          onclick="selectPlan('${p.id}')">
+          <div style="font-weight:700;font-size:15px;margin-bottom:4px;">${p.name}</div>
+          <div style="font-size:13px;opacity:.6;">${p.desc}</div>
+        </div>`).join("")}
+    `;
+    document.getElementById("plan-progress-text").textContent = "";
+    document.getElementById("plan-bar").style.width = "0%";
+    return;
+  }
+
+  // Show active plan
+  const done = JSON.parse(localStorage.getItem("plan_done")||"[]");
+  const days = activePlan.days;
+  const pct = Math.round(done.length / days.length * 100);
+  document.getElementById("plan-progress-text").textContent = `${done.length}/${days.length} дней`;
+  document.getElementById("plan-bar").style.width = pct+"%";
+
+  container.innerHTML = `
+    <div style="display:flex;justify-content:space-between;margin-bottom:12px;align-items:center;">
+      <span style="font-size:14px;font-weight:600;color:var(--accent);">${activePlan.name}</span>
+      <button onclick="resetPlan()" style="background:none;border:1px solid var(--border);border-radius:8px;padding:4px 10px;font-size:12px;color:var(--text);cursor:pointer;">
+        Сменить план
+      </button>
+    </div>
+    ${days.map((d,i)=>{
+      const isDone = done.includes(i);
+      const isToday = !isDone && done.length === i;
+      return `<div class="plan-day${isDone?" done":""}" style="${isToday?"border:2px solid var(--accent);":""}" onclick="togglePlanDay(${i})">
+        <div class="plan-check">${isDone?"✓":""}</div>
+        <div class="plan-day-info">
+          <div class="plan-day-title" style="${isToday?"color:var(--accent);":""}">День ${i+1}${isToday?" — сегодня":""}</div>
+          <div class="plan-day-ref">${d.title}</div>
+        </div>
+        <button onclick="event.stopPropagation();goPlanDay(${i})"
+          style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer;flex-shrink:0;">
+          Читать
+        </button>
+      </div>`;
+    }).join("")}
+  `;
+}
+
+function selectPlan(id){
+  if(!bible){ alert("Сначала загрузите Библию"); return; }
+  
+  if(id === "custom"){
+    // Custom plan dialog
+    const bookName = prompt("С какой книги начать? (например: Бытие, Матфея, Псалтирь)");
+    if(!bookName) return;
+    const daysStr = prompt("За сколько дней прочитать?");
+    if(!daysStr) return;
+    const totalDays = parseInt(daysStr);
+    if(!totalDays || totalDays < 1) return;
+    
+    const startBook = bible.books.findIndex(b => 
+      b.name.toLowerCase().includes(bookName.toLowerCase())
+    );
+    if(startBook === -1){ alert("Книга не найдена. Попробуй другое название."); return; }
+    
+    const days = buildPlanDays(startBook, bible.books.length, totalDays);
+    const plan = { id, name: `${bible.books[startBook].name} за ${totalDays} дней`, days };
+    localStorage.setItem("active_plan", JSON.stringify(plan));
+    localStorage.setItem("plan_done", "[]");
+    renderPlan();
+    return;
+  }
+
+  const tmpl = PLAN_TEMPLATES.find(p=>p.id===id);
+  if(!tmpl) return;
+  
+  const totalDays = {nt_30:30, nt_90:90, bible_1:365, bible_2:730}[id] || 30;
+  const days = buildPlanDays(tmpl.startBook, 999, totalDays);
+  const plan = { id, name: tmpl.name, days };
+  localStorage.setItem("active_plan", JSON.stringify(plan));
+  localStorage.setItem("plan_done", "[]");
+  renderPlan();
+}
+
+function resetPlan(){
+  if(confirm("Сбросить текущий план и выбрать новый?")){
+    localStorage.removeItem("active_plan");
+    localStorage.removeItem("plan_done");
+    renderPlan();
+  }
+}
+
+function togglePlanDay(i){
+  const done = JSON.parse(localStorage.getItem("plan_done")||"[]");
+  const idx = done.indexOf(i);
+  if(idx===-1) done.push(i); else done.splice(idx,1);
+  localStorage.setItem("plan_done", JSON.stringify(done));
+  renderPlan();
+}
+
+function goPlanDay(i){
+  const plan = JSON.parse(localStorage.getItem("active_plan")||"null");
+  if(!plan||!plan.days[i]) return;
+  const [bi,ci] = plan.days[i].chapters[0];
+  bIdx=bi; cIdx=ci;
+  showScreen("reader");
+  if(cache.has(lang)){bible=cache.get(lang);render();}
+  else loadBible();
+}
+
+
+// ── VICTORY / SPIRITUAL GROWTH ───────────────────────────────────────────────
+const DAILY_TASKS = [
+  { text:"Прочитай Псалом 51 вслух и помолись словами Давида о чистом сердце.", verse:"Сотвори мне чистое сердце, Боже, и обнови правый дух внутри меня.", ref:"Пс. 51:10" },
+  { text:"Напиши 3 вещи за которые благодарен Богу сегодня. Благодарность разрушает похоть.", verse:"За всё благодарите: ибо такова о вас воля Божия во Христе Иисусе.", ref:"1 Фес. 5:18" },
+  { text:"Проведи 15 минут в тишине только с Богом. Без телефона, без музыки.", verse:"Замолчите и познайте, что Я Бог.", ref:"Пс. 46:10" },
+  { text:"Позвони или напиши кому-то кому нужна поддержка. Служение другим освобождает от себя.", verse:"Носите бремена друг друга и таким образом исполните закон Христов.", ref:"Гал. 6:2" },
+  { text:"Выучи наизусть один стих из Библии. Слово в сердце — щит в момент искушения.", verse:"В сердце моём сокрыл я слово Твоё, чтобы не грешить пред Тобою.", ref:"Пс. 119:11" },
+  { text:"Попостись от соцсетей весь день. Освободи время для молитвы и Слова.", verse:"Сей же род изгоняется только молитвою и постом.", ref:"Мф. 17:21" },
+  { text:"Прочитай Иосифа (Быт. 39) — как он убежал от искушения. Побег — это мудрость.", verse:"Бегайте блуда.", ref:"1 Кор. 6:18" },
+];
+
+const TEMPTATION_VERSES = [
+  { verse:"Нет такого искушения которое превысило бы ваши силы; Бог не попустит вам искушаться сверх сил, но при искушении даст и облегчение.", ref:"1 Кор. 10:13" },
+  { verse:"Противостаньте дьяволу и он убежит от вас. Приблизьтесь к Богу и Он приблизится к вам.", ref:"Иак. 4:7-8" },
+  { verse:"Поминайте узников как-бы и вы с ними были в узах. Бодрствуйте и молитесь чтобы не впасть в искушение.", ref:"Мф. 26:41" },
+  { verse:"Я могу всё в укрепляющем меня Иисусе Христе.", ref:"Флп. 4:13" },
+  { verse:"Господь знает как избавлять благочестивых от искушения.", ref:"2 Пет. 2:9" },
+];
+
+const TEMPTATION_TIPS = [
+  "Встань и выйди из комнаты. Физически смени место — это работает.",
+  "Позвони другу прямо сейчас. Не важно о чём — просто поговори.",
+  "Открой Библию на Псалме 23 и читай вслух пока не пройдёт.",
+  "Сделай 20 отжиманий. Физическое действие переключает мозг.",
+  "Помолись вслух — не в уме, именно вслух. Враг боится твоего голоса.",
+];
+
+function renderVictory(){
+  const startDate = localStorage.getItem("victory_start");
+  const lastMark = localStorage.getItem("victory_last_mark");
+  const today = new Date().toDateString();
+
+  let days = 0;
+  let sinceText = "Начни сегодня — нажми кнопку ниже";
+
+  if(startDate){
+    const start = new Date(startDate);
+    const diff = Math.floor((new Date() - start) / 86400000);
+    days = diff;
+    const d = new Date(startDate);
+    sinceText = `С ${d.getDate()}.${d.getMonth()+1}.${d.getFullYear()}`;
+  }
+
+  document.getElementById("victory-days").textContent = days;
+  document.getElementById("victory-since").textContent = sinceText;
+
+  // Daily task (rotate by day of year)
+  const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(),0,0)) / 86400000);
+  const task = DAILY_TASKS[dayOfYear % DAILY_TASKS.length];
+  document.getElementById("task-text").textContent = task.text;
+  document.getElementById("task-verse").textContent = `«${task.verse}» — ${task.ref}`;
+
+  const taskDone = localStorage.getItem("task_done_"+today);
+  const taskBtn = document.getElementById("task-done-btn");
+  if(taskDone){ taskBtn.textContent = "✓ Выполнено!"; taskBtn.disabled = true; taskBtn.style.opacity = ".5"; }
+  else { taskBtn.textContent = "Выполнено ✓"; taskBtn.disabled = false; taskBtn.style.opacity = "1"; }
+}
+
+function markClean(){
+  const today = new Date().toDateString();
+  const lastMark = localStorage.getItem("victory_last_mark");
+  if(!localStorage.getItem("victory_start")){
+    localStorage.setItem("victory_start", new Date().toISOString());
+  }
+  localStorage.setItem("victory_last_mark", today);
+  if(tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred("success");
+  renderVictory();
+}
+
+function confirmFall(){
+  if(confirm("Это требует смелости признать. Бог не отвергает тебя. Начнём заново?")){
+    localStorage.removeItem("victory_start");
+    localStorage.removeItem("victory_last_mark");
+    localStorage.setItem("victory_start", new Date().toISOString());
+    renderVictory();
+    if(tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred("warning");
+  }
+}
+
+function markTaskDone(){
+  const today = new Date().toDateString();
+  localStorage.setItem("task_done_"+today, "1");
+  renderVictory();
+  if(tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred("success");
+}
+
+function openTemptation(){
+  const v = TEMPTATION_VERSES[Math.floor(Math.random()*TEMPTATION_VERSES.length)];
+  const tip = TEMPTATION_TIPS[Math.floor(Math.random()*TEMPTATION_TIPS.length)];
+  document.getElementById("temptation-verse").textContent = `«${v.verse}»`;
+  document.getElementById("temptation-ref").textContent = v.ref;
+  document.getElementById("temptation-tip").textContent = tip;
+  document.getElementById("temptation-modal").classList.add("open");
+  if(tg?.HapticFeedback) tg.HapticFeedback.impactOccurred("heavy");
+}
+
+function closeTemptation(){
+  document.getElementById("temptation-modal").classList.remove("open");
+}
+
+async function loadBible(){
+  try{
+    if(!cache.has(lang)){
+      const r=await fetch(FILES[lang]);
+      if(!r.ok)throw new Error("HTTP "+r.status);
+      const d=await r.json();
+      // Book names kept as-is from JSON files
+      d.books.forEach(b=>b.chapters.forEach(ch=>ch.verses.forEach(v=>{v.text=(v.text||"").trim();})));
+      cache.set(lang,d);
+    }
+    bible=cache.get(lang);
+    bIdx=Math.min(bIdx,bible.books.length-1);
+    cIdx=Math.min(cIdx,bible.books[bIdx].chapters.length-1);
+    selBookIdx=bIdx;
+    render();
+  }catch(e){
+    document.getElementById("reader").innerHTML=`<div style="padding:40px;text-align:center;color:red;font-size:16px;">
+      <b>Ошибка загрузки</b><br><br>
+      <span style="font-size:13px;opacity:.7;">${e.message}</span><br><br>
+      Файл: data/${FILES[lang].split('/')[1]}<br><br>
+      <button class="header-btn" onclick="loadBible()">Повторить</button>
+    </div>`;
+    document.getElementById("ref-btn").textContent="Ошибка";
+  }
+}
+
+function render(){
+  if(!bible)return;
+  const book=bible.books[bIdx];
+  const ch=book.chapters[cIdx];
+  document.getElementById("ref-btn").textContent=`${book.name} ${cIdx+1} ▾`;
+  localStorage.setItem("bib-b",bIdx);localStorage.setItem("bib-c",cIdx);
+  let h=`<h2 style="font-family:Georgia,serif;font-size:26px;margin:0 0 18px;">${book.name} ${cIdx+1}</h2>`;
+  ch.verses.forEach(v=>{
+    const nk=`vnote_${lang}_${bIdx}_${cIdx}_${v.verse}`;
+    const hk=`vhl_${lang}_${bIdx}_${cIdx}_${v.verse}`;
+    const hasN=!!localStorage.getItem(nk)||!!localStorage.getItem(hk);
+    const hl=localStorage.getItem(hk)||"";
+    const t=v.text.replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    h+=`<span class="verse${hasN?' has-note':''}${hl?' hl-'+hl:''}" data-n="${v.verse}" data-t="${t}" onclick="toggleV(${v.verse},this)"><span class="v-num">${v.verse}</span>${v.text} </span>`;
+  });
+  document.getElementById("reader").innerHTML=h;
+  clearSel();window.scrollTo(0,0);
+}
+
+function toggleV(n,el){
+  if(sel.has(n)){sel.delete(n);el.classList.remove("selected");}
+  else{sel.set(n,el.dataset.t);el.classList.add("selected");}
+  sel.size>0?showVP():clearSel();
+}
+
+function showVP(){
+  const nums=Array.from(sel.keys()).sort((a,b)=>a-b);
+  const bn=bible.books[bIdx].name;
+  const ref=nums.length>1?`${bn} ${cIdx+1}:${nums[0]}–${nums[nums.length-1]}`:`${bn} ${cIdx+1}:${nums[0]}`;
+  const txt=nums.map(n=>sel.get(n)).join(" ");
+  document.getElementById("vp-ref").textContent=ref;
+  document.getElementById("vp-text").textContent=txt;
+  const inp=document.getElementById("vp-note");
+  const btn=document.getElementById("vp-save");
+  inp.classList.remove("show");btn.classList.remove("show");
+  if(nums.length===1){
+    const ex=localStorage.getItem(`vnote_${lang}_${bIdx}_${cIdx}_${nums[0]}`)||"";
+    inp.value=ex;
+  }else inp.value="";
+  // Show current highlight
+  if(nums.length===1){
+    const curHl=localStorage.getItem(`vhl_${lang}_${bIdx}_${cIdx}_${nums[0]}`)||"";
+    document.querySelectorAll(".color-dot").forEach(d=>{
+      d.classList.toggle("active", d.dataset.c===curHl);
+    });
+  }
+  document.getElementById("vp").classList.add("open");
+}
+
+function clearSel(){
+  sel.clear();
+  document.querySelectorAll(".verse.selected").forEach(e=>e.classList.remove("selected"));
+  document.getElementById("vp").classList.remove("open");
+  document.getElementById("vp-note").classList.remove("show");
+  document.getElementById("vp-save").classList.remove("show");
+}
+
+function toggleNote(){
+  const i=document.getElementById("vp-note");
+  const b=document.getElementById("vp-save");
+  const o=i.classList.contains("show");
+  i.classList.toggle("show",!o);b.classList.toggle("show",!o);
+  if(!o)i.focus();
+}
+
+function saveNote(){
+  const note=document.getElementById("vp-note").value.trim();
+  const nums=Array.from(sel.keys()).sort((a,b)=>a-b);
+  // Save scroll position before render
+  const scrollY = window.scrollY;
+  nums.forEach(n=>{
+    const k=`vnote_${lang}_${bIdx}_${cIdx}_${n}`;
+    note?localStorage.setItem(k,note):localStorage.removeItem(k);
+  });
+  // Re-render chapter but restore scroll
+  const book=bible.books[bIdx];
+  const ch=book.chapters[cIdx];
+  let h=`<h2 style="font-family:Georgia,serif;font-size:26px;margin:0 0 18px;">${book.name} ${cIdx+1}</h2>`;
+  ch.verses.forEach(v=>{
+    const nk=`vnote_${lang}_${bIdx}_${cIdx}_${v.verse}`;
+    const hk=`vhl_${lang}_${bIdx}_${cIdx}_${v.verse}`;
+    const hasN=!!localStorage.getItem(nk)||!!localStorage.getItem(hk);
+    const hl=localStorage.getItem(hk)||"";
+    const t=v.text.replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+    h+=`<span class="verse${hasN?" has-note":""}${hl?" hl-"+hl:""}" data-n="${v.verse}" data-t="${t}" onclick="toggleV(${v.verse},this)"><span class="v-num">${v.verse}</span>${v.text} </span>`;
+  });
+  document.getElementById("reader").innerHTML=h;
+  // Restore scroll position
+  window.scrollTo(0, scrollY);
+  // Re-select verses
+  nums.forEach(n=>{
+    const el=document.querySelector(`.verse[data-n="${n}"]`);
+    if(el){sel.set(n,el.dataset.t);el.classList.add("selected");}
+  });
+  showVP();
+  if(tg?.HapticFeedback)tg.HapticFeedback.notificationOccurred("success");
+}
+
+function copyVerse(){
+  const nums=Array.from(sel.keys()).sort((a,b)=>a-b);
+  const ref=`${bible.books[bIdx].name} ${cIdx+1}:${nums.length>1?nums[0]+"-"+nums[nums.length-1]:nums[0]}`;
+  const txt=nums.map(n=>sel.get(n)).join(" ");
+  navigator.clipboard.writeText(`${ref}\n"${txt}"`).then(()=>{if(tg?.HapticFeedback)tg.HapticFeedback.notificationOccurred("success");});
+  clearSel();
+}
+
+function explainVerse(){
+  if(!tg)return;
+  const nums=Array.from(sel.keys()).sort((a,b)=>a-b);
+  const ref=`${bible.books[bIdx].name} ${cIdx+1}:${nums[0]}`;
+  const txt=nums.map(n=>sel.get(n)).join(" ");
+  tg.sendData(`explain:${ref}:${txt}`);clearSel();
+}
+
+function delNote(k){localStorage.removeItem(k);render();}
+
+function nav(d){
+  cIdx+=d;
+  if(cIdx<0){if(bIdx>0){bIdx--;cIdx=bible.books[bIdx].chapters.length-1;}else cIdx=0;}
+  else if(cIdx>=bible.books[bIdx].chapters.length){if(bIdx<bible.books.length-1){bIdx++;cIdx=0;}else cIdx=bible.books[bIdx].chapters.length-1;}
+  render();
+}
+
+function openSelector(){
+  selBookIdx=bIdx;
+  document.getElementById("selector").classList.add("open");
+  renderBL();renderCG(bIdx);
+}
+function renderLR(){ /* lang row now in settings */ }
+
+function renderSettingsLang(){
+  const row=document.getElementById("settings-lang-row");
+  if(!row)return;
+  row.innerHTML=Object.entries(LABELS).map(([k,v])=>
+    `<button class="header-btn" style="${k===lang?'background:var(--accent);color:#fff;':''};width:100%;padding:10px 0;" onclick="switchL('${k}');renderSettingsLang()">${v}</button>`
+  ).join("");
+}
+function renderBL(){
+  document.getElementById("book-list").innerHTML=bible.books.map((b,i)=>
+    `<button class="list-item${i===selBookIdx?' active':''}" onclick="selBookIdx=${i};renderBL();renderCG(${i})">${b.name}</button>`
+  ).join("");
+}
+function renderCG(bi){
+  document.getElementById("chap-grid").innerHTML=bible.books[bi].chapters.map((_,c)=>
+    `<button class="chap-btn${bi===bIdx&&c===cIdx?' cur':''}" onclick="bIdx=${bi};cIdx=${c};render();closeSelector();">${c+1}</button>`
+  ).join("");
+}
+function switchL(l){
+  lang=l;
+  localStorage.setItem("bib-lang",l);
+  // Keep current position, don't reset to 0
+  selBookIdx=bIdx;
+  closeSheet();
+  loadBible().then(()=>{
+    // Keep same position if possible
+    bIdx=Math.min(bIdx,bible.books.length-1);
+    cIdx=Math.min(cIdx,bible.books[bIdx].chapters.length-1);
+    selBookIdx=bIdx;
+    render();
+  });
+}
+function closeSelector(){document.getElementById("selector").classList.remove("open");}
+function openSheet(id){
+  document.getElementById(id).classList.add("open");
+  if(id==="settings-sheet"){
+    renderSettingsLang();
+    // Mark active UI lang button
+    ["ru","uk","en","es"].forEach(k=>{
+      const btn=document.getElementById("ui-"+k);
+      if(btn){btn.style.background=k===uiLang?"var(--accent)":"";btn.style.color=k===uiLang?"#fff":"";}
+    });
+  }
+}
+function closeSheet(){document.querySelectorAll(".sheet").forEach(s=>s.classList.remove("open"));}
+function setUiLang(l){
+  uiLang=l;
+  localStorage.setItem("ui-lang",l);
+  updateUI();
+  // Update active button
+  ["ru","uk","en","es"].forEach(k=>{
+    const btn=document.getElementById("ui-"+k);
+    if(btn)btn.style.background=k===l?"var(--accent)":"";
+    if(btn)btn.style.color=k===l?"#fff":"";
+  });
+}
+
+function updateUI(){
+  // Nav buttons
+  const navMap={reader:"read",search:"search",bookmarks:"bookmarks",notes:"notes",plan:"plan",victory:"victory"};
+  Object.entries(navMap).forEach(([screen,key])=>{
+    const btn=document.getElementById("bn-"+screen);
+    if(btn){
+      const icon=btn.querySelector(".bn-icon");
+      const icons={reader:"📖",search:"🔍",bookmarks:"🔖",notes:"🗒",plan:"📅",victory:"⚔️"};
+      btn.innerHTML=`<span class="bn-icon">${icons[screen]}</span>${ui(key)}`;
+    }
+  });
+  // Nav prev/next buttons
+  const prevBtn=document.getElementById("btn-prev");
+  const nextBtn=document.getElementById("btn-next");
+  if(prevBtn)prevBtn.textContent=ui("back");
+  if(nextBtn)nextBtn.textContent=ui("forward");
+  // Search placeholder
+  const si=document.getElementById("search-input");
+  if(si)si.placeholder=ui("searchPlaceholder");
+  // Headings
+  const ov=document.querySelector("#selector .overlay-head b");
+  if(ov)ov.textContent=ui("contents");
+}
+
+function setTheme(t){
+  document.body.setAttribute("data-theme",t);localStorage.setItem("bib-theme",t);
+  if(tg)try{const c={light:"#fff",sepia:"#f4ecd8",sand:"#f0e4d0",olive:"#e8eade",dark:"#2c2c2e",night:"#000"};tg.setBackgroundColor(c[t]);tg.setHeaderColor(c[t]);}catch(e){}
+  closeSheet();
+}
+function changeFs(d){
+  let c=parseInt(localStorage.getItem("bib-fs")||20);
+  c=Math.max(14,Math.min(32,c+d));
+  localStorage.setItem("bib-fs",c);
+  document.documentElement.style.setProperty("--fs",c+"px");
+}
+const st=localStorage.getItem("bib-theme")||"sepia";
+document.body.setAttribute("data-theme",st);
+document.documentElement.style.setProperty("--fs",(localStorage.getItem("bib-fs")||20)+"px");
+if(tg){tg.ready();tg.expand();}
+// Apply saved UI language
+setUiLang(uiLang);
+loadBible();
+</script>
+</body>
+</html>
